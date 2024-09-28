@@ -1,15 +1,16 @@
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert 
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 
+import { Player } from "../PlayerContext"; // Import Player context
 
 const LoginDetailScreen = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +20,7 @@ const LoginDetailScreen = () => {
   const [errorMessagePassword, setErrorMessagePassword] = useState(""); // Thông báo lỗi cho password
 
   const navigation = useNavigation();
+  const { setIsLoggedIn } = useContext(Player);
 
   // Object demo chứa thông tin tài khoản hợp lệ
   const validCredentials = {
@@ -69,7 +71,10 @@ const LoginDetailScreen = () => {
         Alert.alert("Success", "Login successful!", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Main"), // Chuyển hướng đến trang Home
+            onPress: () => {
+              setIsLoggedIn(true); // Đặt trạng thái là đã đăng nhập
+              navigation.navigate("Main"); // Chuyển hướng đến trang home
+            },
           },
         ]);
       } else {
@@ -212,7 +217,7 @@ const styles = StyleSheet.create({
     color: "#ffffff", // Màu xanh lá cây cho liên kết
     fontSize: 14,
     textAlign: "center", // Căn giữa
-    fontWeight:'bold'
+    fontWeight: "bold",
   },
   errorText: {
     color: "red",

@@ -2,7 +2,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import HomeScreen from "./screens/HomeScreen";
-import ProfileScreen from "./screens/ProfileScreen";
 import LoginScreen from "./screens/LoginScreen";
 import PlaylistScreen from "./screens/PlaylistScreen";
 import LikedSongScreen from "./screens/LikedSongScreen";
@@ -12,6 +11,7 @@ import SearchScreen from "./screens/SearchScreen";
 import PremiumScreen from "./screens/PremiumScreen";
 import ArtistDetailScreen from "./screens/ArtistDetailScreen";
 import { Entypo, Ionicons, AntDesign } from "@expo/vector-icons";
+import LibraryScreen from "./screens/LibraryScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -33,10 +33,10 @@ function SearchStack() {
   );
 }
 
-function ProfileStack() {
+function LibraryStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Library" component={LibraryScreen} options={{ headerShown: false }} />
       <Stack.Screen name="LikedSong" component={LikedSongScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} options={{ headerShown: false }} />
       
@@ -85,8 +85,8 @@ function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="ProfileStack"
-        component={ProfileStack}
+        name="LibraryStack"
+        component={LibraryStack}
         options={{
           tabBarLabel: "Your Library",
           headerShown: false,

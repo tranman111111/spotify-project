@@ -64,10 +64,12 @@ const SignUpScreen = () => {
     }
 
     if (isValid) {
-      // Nếu không có lỗi, thực hiện thao tác đăng ký
-      Alert.alert("Success", "Account created successfully!");
-      // Chuyển hướng đến trang Main
-      navigation.navigate("Main");
+      Alert.alert("Success", "Sign Up successful!", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("LoginDetail"), // Chuyển hướng đến Login
+        },
+      ]);
     }
   };
 

@@ -25,6 +25,36 @@ const SearchScreen = () => {
     },
     { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
     { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
+    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
+    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
   ];
 
   const suggestions = [
@@ -91,7 +121,7 @@ const SearchScreen = () => {
                 onChangeText={setSearchQuery}
               />
             </View>
-            <ScrollView style={styles.suggestionsContainer}>
+            <ScrollView>
               {searchQuery.length > 0 ? (
                 suggestions
                   .filter((item) =>
@@ -104,7 +134,9 @@ const SearchScreen = () => {
                   ))
               ) : (
                 <View style={styles.noSuggestionsContainer}>
-                  <Text style={styles.noSuggestionsTitle}>Play what you love</Text>
+                  <Text style={styles.noSuggestionsTitle}>
+                    Play what you love
+                  </Text>
                   <Text style={styles.noSuggestionsSubtitle}>
                     Search for artists, songs, podcasts, and more.
                   </Text>
@@ -206,11 +238,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#282828",
     color: "#fff",
     marginHorizontal: 10,
-  },
-  suggestionsContainer: {
-    marginTop: 10,
-    backgroundColor:'#121212'
-
+    fontSize:18
   },
   suggestionItem: {
     padding: 15,
@@ -224,7 +252,8 @@ const styles = StyleSheet.create({
     alignItems: "center", // Căn giữa chiều ngang
     paddingHorizontal: 20, // Thêm padding nếu cần
     flex: 1, // Đảm bảo nó chiếm hết không gian
-},
+    marginTop:350
+  },
 
   noSuggestionsTitle: {
     color: "#fff",
@@ -233,7 +262,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   noSuggestionsSubtitle: {
-    color: "#fff",
+    color: "gray",
     fontSize: 13, // Thay đổi cỡ chữ cho dòng thứ hai
     textAlign: "center",
   },

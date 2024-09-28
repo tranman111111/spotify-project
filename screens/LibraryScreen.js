@@ -25,7 +25,7 @@ const data = [
   // Thêm dữ liệu nghệ sĩ yêu thích khác tại đây
 ];
 
-const ProfileScreen = () => {
+const LibraryScreen = () => {
 
   const navigation = useNavigation();
 
@@ -160,4 +160,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default LibraryScreen;
