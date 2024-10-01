@@ -30,15 +30,12 @@ const SignUpScreen = () => {
   };
 
   const handleSignUp = () => {
-    // Reset error messages
     setEmailError("");
     setPasswordError("");
     setConfirmPasswordError("");
 
-    // Validation logic
     let isValid = true;
 
-    // Kiểm tra xem các trường có được điền đầy đủ hay không
     if (!email) {
       setEmailError("Email is required.");
       isValid = false;
@@ -67,7 +64,7 @@ const SignUpScreen = () => {
       Alert.alert("Success", "Sign Up successful!", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("LoginDetail"), // Chuyển hướng đến Login
+          onPress: () => navigation.navigate("LoginDetail"), 
         },
       ]);
     }

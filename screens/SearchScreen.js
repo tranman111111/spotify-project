@@ -33,10 +33,8 @@ const SearchScreen = () => {
     { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
     { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
     { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-
     { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
     { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-
     { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
     { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
     { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
@@ -223,7 +221,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
     padding: 0,
-    justifyContent: "flex-start", // Căn giữa nội dung theo chiều dọc
+    justifyContent: "flex-start",
   },
   modalHeader: {
     flexDirection: "row",
@@ -248,22 +246,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   noSuggestionsContainer: {
-    justifyContent: "center", // Căn giữa chiều dọc
-    alignItems: "center", // Căn giữa chiều ngang
-    paddingHorizontal: 20, // Thêm padding nếu cần
-    flex: 1, // Đảm bảo nó chiếm hết không gian
+    justifyContent: "center", 
+    alignItems: "center",
+    paddingHorizontal: 20, 
+    flex: 1, 
     marginTop:350
   },
 
   noSuggestionsTitle: {
     color: "#fff",
-    fontSize: 22, // Thay đổi cỡ chữ cho dòng đầu tiên
+    fontSize: 22, 
     fontWeight: "bold",
     textAlign: "center",
   },
   noSuggestionsSubtitle: {
     color: "gray",
-    fontSize: 13, // Thay đổi cỡ chữ cho dòng thứ hai
+    fontSize: 13, 
     textAlign: "center",
   },
 });

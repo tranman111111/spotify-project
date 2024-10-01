@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Hoặc thư viện icon khác
+import Icon from "react-native-vector-icons/MaterialIcons"; 
 
 const PremiumScreen = () => {
   return (
@@ -18,8 +18,8 @@ const PremiumScreen = () => {
         <View style={styles.headerContent}>
           <View style={styles.titleContainer}>
             <Image
-              source={require("../assets/logo.png")} // Thay đổi đường dẫn đến ảnh của bạn
-              style={styles.iconImage} // Style cho ảnh
+              source={require("../assets/logo.png")} 
+              style={styles.iconImage}
             />
             <Text style={styles.premiumText}>Premium</Text>
           </View>
@@ -38,10 +38,8 @@ const PremiumScreen = () => {
         <Text style={styles.linkText}> Terms apply.</Text>
       </Text>
 
-      {/* Features section */}
       <View style={styles.featuresSection}>
         <Text style={styles.sectionTitle}>Why join Premium?</Text>
-        {/* Đường line ngang */}
         <View style={styles.divider} />
         <FeatureItem icon="close" text="Ad-free music listening" />
         <FeatureItem icon="file-download" text="Download to listen offline" />
@@ -81,26 +79,26 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   titleContainer: {
-    flexDirection: "row", // Để ảnh và chữ nằm trên cùng một hàng
-    alignItems: "center", // Căn giữa cho ảnh và chữ
-    marginBottom: 10, // Khoảng cách giữa tiêu đề và phần thông tin dưới
+    flexDirection: "row", 
+    alignItems: "center", 
+    marginBottom: 10, 
   },
   iconImage: {
-    width: 30, // Đặt chiều rộng cho ảnh
-    height: 30, // Đặt chiều cao cho ảnh
-    marginRight: 8, // Khoảng cách giữa ảnh và chữ "Premium"
+    width: 30,
+    height: 30,
+    marginRight: 8, 
   },
   premiumText: {
-    color: "#fff", // Màu chữ trắng
-    fontSize: 18, // Kích thước chữ "Premium"
-    marginRight: 10, // Khoảng cách giữa chữ "Premium" và tiêu đề
+    color: "#fff", 
+    fontSize: 18,
+    marginRight: 10, 
   },
   title: {
     color: "#fff",
-    fontSize: 20, // Kích thước chữ tiêu đề
-    fontWeight: "400", // Độ đậm của chữ
+    fontSize: 20,
+    fontWeight: "400", 
     textAlign: "left",
-    lineHeight: 24, // Khoảng cách giữa các dòng
+    lineHeight: 24, 
   },
   upgradeButton: {
     backgroundColor: "#fff",
@@ -153,7 +151,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   icon: {
-    marginRight: 10, // Khoảng cách giữa icon và text
+    marginRight: 10,
   },
   divider: {
     height: 0.5,

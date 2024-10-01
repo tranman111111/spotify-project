@@ -55,7 +55,7 @@ Thay những khi mà em đằng sau nằm ôm anh`;
         >
           <ScrollView
             style={{ height: "100%", width: "100%", marginTop: 40 }}
-            showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
+            showsVerticalScrollIndicator={false} 
           >
             <Pressable
               style={{
@@ -220,8 +220,8 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                   <Text
                     style={{
                       fontSize: 16,
-                      color: "white", // Màu chữ trắng
-                      textAlign: "left", // Căn trái cho lyrics
+                      color: "white", 
+                      textAlign: "left", 
                       marginBottom: 10,
                     }}
                   >
@@ -230,8 +230,8 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                   <Text
                     style={{
                       fontSize: 16,
-                      color: "white", // Màu chữ trắng
-                      textAlign: "left", // Căn trái cho lyrics
+                      color: "white", 
+                      textAlign: "left", 
                     }}
                   >
                     {lyrics}
@@ -239,12 +239,12 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 </View>
 
                 <Pressable
-                  onPress={() => setShowFullLyrics(!showFullLyrics)} // Đổi trạng thái show/hide
+                  onPress={() => setShowFullLyrics(!showFullLyrics)} 
                   style={{
-                    marginTop: 10, // Khoảng cách giữa lyrics và nút
+                    marginTop: 10,
                     padding: 10,
-                    backgroundColor: "white", // Màu nền nút
-                    borderRadius: 20, // Bo góc nút
+                    backgroundColor: "white", 
+                    borderRadius: 20, 
                   }}
                 >
                   <Text style={{ color: "black", fontWeight: "bold" }}>
@@ -253,16 +253,13 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 </Pressable>
               </View>
             </Pressable>
-            {/* Kết thúc phần lyrics */}
 
             <Pressable style={styles.container}>
-              {/* Thay đổi ảnh để bao toàn bộ chiều rộng */}
               <View style={styles.imageContainer}>
                 <Image
                   style={styles.artistImage}
-                  source={require("../assets/Hieuthuhai.jpg")} // Hình ảnh của nghệ sĩ
+                  source={require("../assets/Hieuthuhai.jpg")} 
                 />
-                {/* Tiêu đề "About the artist" ở góc trên cùng bên trái của ảnh */}
                 <Text style={styles.aboutText}>About the artist</Text>
               </View>
 
@@ -305,69 +302,70 @@ Thay những khi mà em đằng sau nằm ôm anh`;
 
 export default CurrentSong;
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    padding: 0, // Bỏ padding để ảnh có thể bao trọn container
-    backgroundColor: "#282828", // Màu nền tối
-    borderRadius: 15, // Viền tròn
+    padding: 0, 
+    backgroundColor: "#282828",
+    borderRadius: 15,
     margin: 10,
-    shadowColor: "#000", // Màu bóng
+    shadowColor: "#000", 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5, // Hiệu ứng bóng cho Android
+    elevation: 5, 
   },
   imageContainer: {
     width: "100%",
-    position: "relative", // Để cho Text có thể được định vị tương đối
+    position: "relative", 
   },
   artistImage: {
     width: "100%",
     height: 200,
-    borderTopLeftRadius: 15, // Giữ viền tròn cho góc trên
-    borderTopRightRadius: 15, // Giữ viền tròn cho góc trên
+    borderTopLeftRadius: 15, 
+    borderTopRightRadius: 15, 
   },
   aboutText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
-    position: "absolute", // Định vị tuyệt đối
-    top: 10, // Khoảng cách từ trên xuống
-    left: 16, // Khoảng cách từ trái vào
+    position: "absolute", 
+    top: 10, 
+    left: 16, 
   },
   artistInfoContainer: {
-    width: "100%", // Để đảm bảo nó chiếm toàn bộ chiều rộng
-    paddingHorizontal: 16, // Đảm bảo khoảng cách bên
+    width: "100%", 
+    paddingHorizontal: 16,
     marginTop: 25,
   },
   artistRow: {
-    flexDirection: "row", // Sắp xếp theo hàng ngang
-    justifyContent: "space-between", // Đảm bảo khoảng cách hợp lý
-    alignItems: "center", // Đặt các thành phần ở giữa
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
     marginBottom: 16,
   },
   artistDetails: {
-    flexDirection: "column", // Đặt tên và người nghe theo cột
+    flexDirection: "column",
   },
   artistName: {
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 4, // Khoảng cách nhỏ giữa tên nghệ sĩ và số người nghe
+    marginBottom: 4,
   },
   listenersText: {
     fontSize: 16,
     color: "white",
   },
   followButton: {
-    backgroundColor: "transparent", // Nền trong suốt
-    borderRadius: 20, // Bo góc nhẹ
+    backgroundColor: "transparent",
+    borderRadius: 20, 
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderWidth: 1, // Độ dày của viền
-    borderColor: "white", // Màu viền trắng
+    borderWidth: 1, 
+    borderColor: "white",
   },
   followButtonText: {
     color: "white",
@@ -377,7 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "white",
     lineHeight: 22,
-    textAlign: "left", // Căn giữa mô tả
-    paddingHorizontal: 16, // Đảm bảo khoảng cách bên
+    textAlign: "left",
+    paddingHorizontal: 16,
   },
 });

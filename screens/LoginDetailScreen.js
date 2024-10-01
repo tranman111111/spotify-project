@@ -10,38 +10,33 @@ import React, { useState, useContext } from "react";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 
-import { Player } from "../PlayerContext"; // Import Player context
+import { Player } from "../PlayerContext"; 
 
 const LoginDetailScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [errorMessageEmail, setErrorMessageEmail] = useState(""); // Thông báo lỗi cho email
-  const [errorMessagePassword, setErrorMessagePassword] = useState(""); // Thông báo lỗi cho password
+  const [errorMessageEmail, setErrorMessageEmail] = useState(""); 
+  const [errorMessagePassword, setErrorMessagePassword] = useState(""); 
 
   const navigation = useNavigation();
   const { setIsLoggedIn } = useContext(Player);
 
-  // Object demo chứa thông tin tài khoản hợp lệ
   const validCredentials = {
     email: "man123@gmail.com",
     password: "Man123",
   };
 
-  // Biểu thức chính quy để kiểm tra email hợp lệ
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Biểu thức chính quy để kiểm tra mật khẩu hợp lệ
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
   const handleLogin = () => {
-    // Reset thông báo lỗi trước khi kiểm tra
     setErrorMessageEmail("");
     setErrorMessagePassword("");
 
     let valid = true;
 
-    // Kiểm tra email
     if (!email) {
       setErrorMessageEmail("Email is required.");
       valid = false;
@@ -50,7 +45,6 @@ const LoginDetailScreen = () => {
       valid = false;
     }
 
-    // Kiểm tra password
     if (!password) {
       setErrorMessagePassword("Password is required.");
       valid = false;
@@ -60,25 +54,21 @@ const LoginDetailScreen = () => {
       );
       valid = false;
     }
-
-    // Nếu tất cả hợp lệ thì kiểm tra với thông tin demo
     if (valid) {
       if (
         email === validCredentials.email &&
         password === validCredentials.password
       ) {
-        // Đăng nhập thành công
         Alert.alert("Success", "Login successful!", [
           {
             text: "OK",
             onPress: () => {
-              setIsLoggedIn(true); // Đặt trạng thái là đã đăng nhập
-              navigation.navigate("Main"); // Chuyển hướng đến trang home
+              setIsLoggedIn(true); 
+              navigation.navigate("Main"); 
             },
           },
         ]);
       } else {
-        // Thông tin đăng nhập không đúng
         setErrorMessageEmail("Invalid email or password.");
       }
     }
@@ -109,16 +99,16 @@ const LoginDetailScreen = () => {
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.input}
-          secureTextEntry={!isPasswordVisible} // Hiển thị mật khẩu hoặc ẩn
+          secureTextEntry={!isPasswordVisible} 
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
         <TouchableOpacity
           style={styles.icon}
-          onPress={() => setPasswordVisible(!isPasswordVisible)} // Thay đổi trạng thái hiển thị mật khẩu
+          onPress={() => setPasswordVisible(!isPasswordVisible)}
         >
           <Icon
-            name={isPasswordVisible ? "eye-off" : "eye"} // Đổi icon khi ẩn hoặc hiện
+            name={isPasswordVisible ? "eye-off" : "eye"} 
             size={24}
             color="#aaa"
           />
@@ -132,7 +122,6 @@ const LoginDetailScreen = () => {
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
 
-      {/* Log in without password */}
       <TouchableOpacity
         style={styles.link}
         onPress={() => Alert.alert("Log in without password")}
@@ -156,10 +145,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, // Căn chỉnh nút ở gần phía trên
-    left: 20, // Căn chỉnh nút ở gần phía bên trái
+    top: 40, 
+    left: 20,
     padding: 10,
-    zIndex: 1, // Đảm bảo nút luôn nằm trên các phần tử khác
+    zIndex: 1, 
   },
   label: {
     color: "#fff",
@@ -207,16 +196,16 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 35,
-    borderColor: "#ffffff", // Màu viền xanh lá
-    borderWidth: 1, // Độ dày viền
-    borderRadius: 25, // Bo góc tròn
-    paddingVertical: 10, // Khoảng cách trên dưới của text
-    paddingHorizontal: 20, // Khoảng cách hai bên của text
+    borderColor: "#ffffff", 
+    borderWidth: 1, 
+    borderRadius: 25, 
+    paddingVertical: 10, 
+    paddingHorizontal: 20,
   },
   linkText: {
-    color: "#ffffff", // Màu xanh lá cây cho liên kết
+    color: "#ffffff", 
     fontSize: 14,
-    textAlign: "center", // Căn giữa
+    textAlign: "center", 
     fontWeight: "bold",
   },
   errorText: {

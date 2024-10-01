@@ -11,28 +11,8 @@ import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { BottomModal } from "react-native-modals";
-import { ModalContent } from "react-native-modals";
-import MiniPlayer from "../components/MiniPlayer";
 
 const LikedSongScreen = () => {
-  const lyrics = `Hãy ở lại với anh thêm một ngày nữa thôi
-Vì anh không muốn phải ngủ một mình đêm nay đâu
-Bên ngoài và uống say hay là ta nằm đây cả đêm
-Chỉ là anh không muốn phải ngủ một mình đêm nay
-Yeah yeah
-Baby nói cho anh nghe em hãy nói cho anh nghe những điều mà
-Điều em muốn sau khi đêm nay trôi qua
-Là một trái tim hay những món quà
-Em muốn đôi tay anh đặt ở những nơi đâu
-Anh đã nhắm đôi môi từ những ngày đầu
-I'm needing all your love
-Nhưng em sẽ chẳng thể thấy anh khi qua ngày mai
-Bởi vì thiên bình đây chẳng thể nào bên ai mãi mãi
-Hãy hứa không nói cho ai
-Hình em gửi anh làm sao mà có thể yeah
-Thay những khi mà em đằng sau nằm ôm anh`;
-
   const navigation = useNavigation();
   const songData = [
     {
@@ -161,14 +141,14 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 // Hành động khi nhấn vào đây
               }}
               style={{
-                backgroundColor: "transparent", // Màu nền là đen
-                width: 28, // Độ rộng và chiều cao giống nhau để tạo hình tròn
+                backgroundColor: "transparent", 
+                width: 28, 
                 height: 28,
-                borderRadius: 20, // Bán kính hình tròn bằng nửa chiều rộng/chiều cao
-                justifyContent: "center", // Canh giữa icon theo chiều dọc
-                alignItems: "center", // Canh giữa icon theo chiều ngang
-                borderWidth: 2, // Độ dày của viền
-                borderColor: "white", // Màu viền là trắng
+                borderRadius: 20,
+                justifyContent: "center", 
+                alignItems: "center", 
+                borderWidth: 2,
+                borderColor: "white", 
               }}
             >
               <AntDesign name="arrowdown" size={20} color="white" />
@@ -257,65 +237,65 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    padding: 0, // Bỏ padding để ảnh có thể bao trọn container
-    backgroundColor: "#282828", // Màu nền tối
-    borderRadius: 15, // Viền tròn
+    padding: 0, 
+    backgroundColor: "#282828", 
+    borderRadius: 15, 
     margin: 10,
-    shadowColor: "#000", // Màu bóng
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5, // Hiệu ứng bóng cho Android
+    elevation: 5, 
   },
   imageContainer: {
     width: "100%",
-    position: "relative", // Để cho Text có thể được định vị tương đối
+    position: "relative", 
   },
   artistImage: {
     width: "100%",
     height: 200,
-    borderTopLeftRadius: 15, // Giữ viền tròn cho góc trên
-    borderTopRightRadius: 15, // Giữ viền tròn cho góc trên
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15, 
   },
   aboutText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
-    position: "absolute", // Định vị tuyệt đối
-    top: 10, // Khoảng cách từ trên xuống
-    left: 16, // Khoảng cách từ trái vào
+    position: "absolute", 
+    top: 10, 
+    left: 16, 
   },
   artistInfoContainer: {
-    width: "100%", // Để đảm bảo nó chiếm toàn bộ chiều rộng
-    paddingHorizontal: 16, // Đảm bảo khoảng cách bên
+    width: "100%",
+    paddingHorizontal: 16, 
     marginTop: 25,
   },
   artistRow: {
-    flexDirection: "row", // Sắp xếp theo hàng ngang
-    justifyContent: "space-between", // Đảm bảo khoảng cách hợp lý
-    alignItems: "center", // Đặt các thành phần ở giữa
+    flexDirection: "row",
+    justifyContent: "space-between", 
+    alignItems: "center", 
     marginBottom: 16,
   },
   artistDetails: {
-    flexDirection: "column", // Đặt tên và người nghe theo cột
+    flexDirection: "column", 
   },
   artistName: {
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 4, // Khoảng cách nhỏ giữa tên nghệ sĩ và số người nghe
+    marginBottom: 4, 
   },
   listenersText: {
     fontSize: 16,
     color: "white",
   },
   followButton: {
-    backgroundColor: "transparent", // Nền trong suốt
-    borderRadius: 20, // Bo góc nhẹ
+    backgroundColor: "transparent", 
+    borderRadius: 20, 
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderWidth: 1, // Độ dày của viền
-    borderColor: "white", // Màu viền trắng
+    borderWidth: 1,
+    borderColor: "white", 
   },
   followButtonText: {
     color: "white",
@@ -325,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "white",
     lineHeight: 22,
-    textAlign: "left", // Căn giữa mô tả
-    paddingHorizontal: 16, // Đảm bảo khoảng cách bên
+    textAlign: "left", 
+    paddingHorizontal: 16, 
   },
 });

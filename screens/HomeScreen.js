@@ -5,15 +5,12 @@ import {
   ScrollView,
   Image,
   Pressable,
-  TouchableOpacity,
 } from "react-native";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-
 import { useNavigation } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/Ionicons";
+
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -93,6 +90,7 @@ const HomeScreen = () => {
           }}
         >
           <Pressable
+          onPress={()=> navigation.navigate('LikedSong')}
             style={{
               marginBottom: 10,
               flexDirection: "row",
@@ -102,11 +100,10 @@ const HomeScreen = () => {
               marginHorizontal: 10,
               marginVertical: 8,
               backgroundColor: "#202020",
-              borderRadius: 4, // Bo góc 4
+              borderRadius: 4, 
               elevation: 3,
-
-              marginHorizontal: 5, // Giảm khoảng cách ngang
-              marginVertical: 5, // Giảm khoảng cách dọc
+              marginHorizontal: 5, 
+              marginVertical: 5, 
             }}
           >
             <LinearGradient
@@ -147,11 +144,11 @@ const HomeScreen = () => {
               marginHorizontal: 10,
               marginVertical: 8,
               backgroundColor: "#202020",
-              borderRadius: 4, // Bo góc 4
+              borderRadius: 4, 
               elevation: 3,
 
-              marginHorizontal: 5, // Giảm khoảng cách ngang
-              marginVertical: 5, // Giảm khoảng cách dọc
+              marginHorizontal: 5, 
+              marginVertical: 5, 
             }}
           >
             <Image
@@ -162,7 +159,7 @@ const HomeScreen = () => {
                 borderBottomRightRadius: 0,
                 borderTopLeftRadius: 4,
                 borderBottomLeftRadius: 4,
-              }} // Không bo góc bên phải
+              }} 
               source={{ uri: "https://i.pravatar.cc/100" }}
             />
             <View>

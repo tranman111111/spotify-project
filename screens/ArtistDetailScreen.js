@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
+import { Ionicons, Entypo } from "@expo/vector-icons";
 
-const { width } = Dimensions.get("window"); // Lấy chiều rộng màn hình
+const { width } = Dimensions.get("window");
 
 const ArtistDetailScreen = ({ navigation }) => {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -81,7 +81,6 @@ const ArtistDetailScreen = ({ navigation }) => {
           <Text style={styles.artistName}>HIEUTHUHAI</Text>
         </View>
 
-
         <View
           style={{
             marginHorizontal: 12,
@@ -102,14 +101,11 @@ const ArtistDetailScreen = ({ navigation }) => {
             marginHorizontal: 10,
           }}
         >
-           <Pressable
-                      style={styles.followButton}
-                      onPress={handleFollowToggle}
-                    >
-                      <Text style={styles.followButtonText}>
-                        {isFollowing ? "Following" : "Follow"}
-                      </Text>
-                    </Pressable>
+          <Pressable style={styles.followButton} onPress={handleFollowToggle}>
+            <Text style={styles.followButtonText}>
+              {isFollowing ? "Following" : "Follow"}
+            </Text>
+          </Pressable>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Entypo
@@ -134,7 +130,15 @@ const ArtistDetailScreen = ({ navigation }) => {
         </Pressable>
 
         <View>
-          <Text style={{fontSize:24, fontWeight:'bold', color:'white', marginLeft:10, marginTop:15}}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: "white",
+              marginLeft: 10,
+              marginTop: 15,
+            }}
+          >
             Popular
           </Text>
         </View>
@@ -161,7 +165,9 @@ const ArtistDetailScreen = ({ navigation }) => {
 
               {/* Thông tin bài hát */}
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ fontSize: 16, fontWeight: "500", color: "white" }}>
+                <Text
+                  style={{ fontSize: 16, fontWeight: "500", color: "white" }}
+                >
                   {item.song}
                 </Text>
                 <Text style={{ fontSize: 14, color: "#989898" }}>
@@ -174,8 +180,6 @@ const ArtistDetailScreen = ({ navigation }) => {
             </Pressable>
           ))}
         </View>
-
-        
       </ScrollView>
     </LinearGradient>
   );
@@ -185,21 +189,21 @@ export default ArtistDetailScreen;
 
 const styles = StyleSheet.create({
   artistImage: {
-    width: width, // Đặt chiều rộng bằng chiều rộng màn hình
+    width: width,
     height: 300,
   },
   backButton: {
-    position: "absolute", // Định vị tuyệt đối
-    top: 30, // Khoảng cách từ trên xuống
-    left: 16, // Khoảng cách từ trái vào
-    backgroundColor: "rgba(0, 0, 0, 0.4)", // Màu đen trong suốt
-    borderRadius: 25, // Viền bo góc
-    padding: 10, // Khoảng cách bên trong
+    position: "absolute",
+    top: 30,
+    left: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    borderRadius: 25,
+    padding: 10,
   },
   artistName: {
-    position: "absolute", // Định vị tuyệt đối
-    bottom: 10, // Khoảng cách từ dưới lên
-    left: 16, // Khoảng cách từ trái vào
+    position: "absolute",
+    bottom: 10,
+    left: 16,
     fontSize: 40,
     fontWeight: "bold",
     color: "white",
@@ -207,16 +211,16 @@ const styles = StyleSheet.create({
   songOrder: {
     fontSize: 16,
     color: "white",
-    marginRight: 20, // Khoảng cách giữa thứ tự và ảnh bài hát
-    marginLeft:10
+    marginRight: 20,
+    marginLeft: 10,
   },
   followButton: {
-    backgroundColor: "transparent", // Nền trong suốt
-    borderRadius: 5, // Bo góc nhẹ
+    backgroundColor: "transparent",
+    borderRadius: 5,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderWidth: 1, // Độ dày của viền
-    borderColor: "white", // Màu viền trắng
+    borderWidth: 1,
+    borderColor: "white",
   },
   followButtonText: {
     color: "white",

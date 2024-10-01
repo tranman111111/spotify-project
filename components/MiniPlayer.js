@@ -1,11 +1,10 @@
-import React, { useContext } from "react";
+import React from "react";
 import { View, Text, Pressable, Image } from "react-native";
-import { Player } from "../PlayerContext"; // Import PlayerContext
-import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
+import {  AntDesign } from "@expo/vector-icons";
 
 const MiniPlayer = ({ onPress }) => {
   const defaultTrack = {
-    artwork: require("../assets/ngu-mot-minh.jpg"), // Đường dẫn đến hình ảnh mặc định
+    artwork: require("../assets/ngu-mot-minh.jpg"),
     title: "Ngủ một mình",
     artist: "HIEUTHUHAI",
   };

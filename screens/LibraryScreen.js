@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
@@ -21,8 +20,7 @@ const data = [
     id: "4",
     name: "Quang Hùng MasterD",
     logo: require("../assets/quang-hung.webp"),
-  },
-  // Thêm dữ liệu nghệ sĩ yêu thích khác tại đây
+  }
 ];
 
 const LibraryScreen = () => {
@@ -55,10 +53,10 @@ const LibraryScreen = () => {
           </TouchableOpacity>
         </View> */}
         {/* <Text style={styles.subHeader}>Favorite Artists</Text> */}
+
         <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('LikedSong')} >
-          {/* Sử dụng LinearGradient cho phần trái */}
           <LinearGradient
-            colors={["#33006F", "#FFFFFF"]} // Gradient từ đỏ nhạt sang hồng đậm
+            colors={["#33006F", "#FFFFFF"]} 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
@@ -66,7 +64,7 @@ const LibraryScreen = () => {
               height: 55,
               justifyContent: "center",
               alignItems: "center",
-              borderRadius: 8, // Thêm bo tròn nếu cần
+              borderRadius: 8, 
               marginRight: 15,
             }}
           >
@@ -105,7 +103,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff", // Đổi màu chữ cho phù hợp với nền tối
+    color: "#fff", 
   },
   subHeader: {
     fontSize: 20,

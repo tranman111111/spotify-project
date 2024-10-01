@@ -1,8 +1,7 @@
-// BottomModal.js
 import React, { useState } from "react";
 import { ScrollView, View, Text, Pressable, Image } from "react-native";
-import { BottomModal, ModalContent } from "react-native-modals"; // Import BottomModal
-import { LinearGradient } from "expo-linear-gradient"; // Nếu bạn sử dụng Expo
+import { BottomModal, ModalContent } from "react-native-modals"; 
+import { LinearGradient } from "expo-linear-gradient"; 
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 
 const BottomModalComponent = ({
@@ -19,10 +18,10 @@ const BottomModalComponent = ({
       visible={visible}
       swipeDirection={["up", "down"]}
       swipeThreshold={200}
-      onBackdropPress={() => setVisible(false)} // Đóng modal khi nhấn ra ngoài
+      onBackdropPress={() => setVisible(false)} 
     >
       <LinearGradient
-        colors={["#B55239", "#000000"]} // Màu gradient từ #B55239 đến màu đen
+        colors={["#B55239", "#000000"]} 
         style={{ height: "100%", width: "100%" }}
       >
         <ModalContent
@@ -33,7 +32,7 @@ const BottomModalComponent = ({
         >
           <ScrollView
             style={{ height: "100%", width: "100%", marginTop: 40 }}
-            showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
+            showsVerticalScrollIndicator={false}
           >
             {/* Phần tiêu đề */}
             <Pressable

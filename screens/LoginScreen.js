@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "bold",
     textAlign: "center",
-    // marginTop: 40,
   },
   buttonPrimary: {
     backgroundColor: "#1DB954",
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
   },
 
   buttonSecondary1: {
-    // backgroundColor: "#131624",
     padding: 10,
     marginLeft: "auto",
     marginRight: "auto",
