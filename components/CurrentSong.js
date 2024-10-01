@@ -6,19 +6,39 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import { BottomModal } from "react-native-modals";
 import { ModalContent } from "react-native-modals";
+import { Audio } from "expo-av";
 
 const CurrentSong = ({ visible, onClose }) => {
   const [showFullLyrics, setShowFullLyrics] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [sound, setSound] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLooping, setIsLooping] = useState(false);
 
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
-  };
+  // Danh sách các bài hát
+  const playlist = [
+    {
+      title: "Ngủ Một Mình",
+      artist: "HIEUTHUHAI",
+      source: require("../assets/NguMotMinh.mp3"),
+    },
+    {
+      title: "Dễ đến dễ đi",
+      artist: "Quang Hùng MasterD",
+      source: require("../assets/DeDenDeDi.mp3"),
+    },
+    {
+      title: "BADBYE",
+      artist: "WEAN",
+      source: require("../assets/Badbye.mp3"),
+    },
+  ];
 
   const lyrics = `Hãy ở lại với anh thêm một ngày nữa thôi
 Vì anh không muốn phải ngủ một mình đêm nay đâu
@@ -37,6 +57,61 @@ Hãy hứa không nói cho ai
 Hình em gửi anh làm sao mà có thể yeah
 Thay những khi mà em đằng sau nằm ôm anh`;
 
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+  };
+
+  const playTrack = async () => {
+    if (sound) {
+      await sound.unloadAsync();
+    }
+    const { sound: newSound } = await Audio.Sound.createAsync(
+      playlist[currentIndex].source,
+      { shouldPlay: true, isLooping }
+    );
+    setSound(newSound);
+    setIsPlaying(true);
+  };
+
+  const handleNextTrack = () => {
+    setCurrentIndex((currentIndex + 1) % playlist.length);
+  };
+
+  const handlePreviousTrack = () => {
+    setCurrentIndex(
+      currentIndex === 0 ? playlist.length - 1 : currentIndex - 1
+    );
+  };
+
+  const playPauseTrack = async () => {
+    if (sound === null) {
+      await playTrack();
+    } else {
+      if (isPlaying) {
+        await sound.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await sound.playAsync();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const toggleLoop = async () => {
+    setIsLooping(!isLooping);
+    if (sound) {
+      await sound.setIsLoopingAsync(!isLooping);
+    }
+  };
+
+  useEffect(() => {
+    playTrack();
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [currentIndex]);
   return (
     <BottomModal
       visible={visible}
@@ -44,18 +119,13 @@ Thay những khi mà em đằng sau nằm ôm anh`;
       swipeThreshold={200}
     >
       <LinearGradient
-        colors={["#B55239", "#000000"]} // Màu gradient từ #B55239 đến màu đen
+        colors={["#B55239", "#000000"]}
         style={{ height: "100%", width: "100%" }}
       >
-        <ModalContent
-          style={{
-            height: "100%",
-            width: "100%",
-          }}
-        >
+        <ModalContent style={{ height: "100%", width: "100%" }}>
           <ScrollView
             style={{ height: "100%", width: "100%", marginTop: 40 }}
-            showsVerticalScrollIndicator={false} 
+            showsVerticalScrollIndicator={false}
           >
             <Pressable
               style={{
@@ -68,19 +138,14 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 <AntDesign name="down" size={24} color="white" />
               </Pressable>
 
-              <View
-                style={{
-                  alignItems: "center", 
-                  justifyContent: "center", 
-                }}
-              >
+              <View style={{ alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ fontSize: 12, color: "white" }}>
-                  PLAYING FROM ARTIST
+                  PLAYING FROM PLAYLIST
                 </Text>
                 <Text
                   style={{ fontSize: 14, fontWeight: "bold", color: "white" }}
                 >
-                  HIEUTHUHAI
+                  {playlist[currentIndex].artist}
                 </Text>
               </View>
 
@@ -99,21 +164,17 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                   marginTop: 20,
                   flexDirection: "row",
                   justifyContent: "space-between",
-                  alignItems: "center", 
+                  alignItems: "center",
                 }}
               >
                 <View>
                   <Text
-                    style={{
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      color: "white",
-                    }}
+                    style={{ fontSize: 18, fontWeight: "bold", color: "white" }}
                   >
-                    ngủ một mình (tình rất tình)
+                    {playlist[currentIndex].title}
                   </Text>
                   <Text style={{ color: "#D3D3D3", marginTop: 4 }}>
-                    HIEUTHUHAI, Negav, Kewtiie
+                    {playlist[currentIndex].artist}
                   </Text>
                 </View>
 
@@ -149,19 +210,12 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                     justifyContent: "space-between",
                   }}
                 >
-                  <Text
-                    style={{ color: "white", fontSize: 15, color: "#D3D3D3" }}
-                  >
-                    2:18
-                  </Text>
-
-                  <Text
-                    style={{ color: "white", fontSize: 15, color: "#D3D3D3" }}
-                  >
-                    4:20
-                  </Text>
+                  <Text style={{ color: "#D3D3D3", fontSize: 15 }}>2:18</Text>
+                  <Text style={{ color: "#D3D3D3", fontSize: 15 }}>4:20</Text>
                 </View>
               </View>
+
+              {/* Điều khiển phát nhạc */}
               <View
                 style={{
                   flexDirection: "row",
@@ -173,28 +227,39 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 <Pressable>
                   <Entypo name="shuffle" size={24} color="white" />
                 </Pressable>
-                <Pressable>
+
+                <Pressable onPress={handlePreviousTrack}>
                   <Ionicons name="play-skip-back" size={30} color="white" />
                 </Pressable>
-                <Pressable>
-                  <Pressable
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 30,
-                      backgroundColor: "white",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Entypo name="controller-play" size={26} color="black" />
-                  </Pressable>
+
+                <Pressable
+                  onPress={playPauseTrack}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: "white",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Entypo
+                    name={isPlaying ? "controller-paus" : "controller-play"}
+                    size={26}
+                    color="black"
+                  />
                 </Pressable>
-                <Pressable>
+
+                <Pressable onPress={handleNextTrack}>
                   <Ionicons name="play-skip-forward" size={30} color="white" />
                 </Pressable>
-                <Pressable>
-                  <Entypo name="loop" size={24} color="white" />
+
+                <Pressable onPress={toggleLoop}>
+                  <Entypo
+                    name="loop"
+                    size={24}
+                    color={isLooping ? "#1DB954" : "white"}
+                  />
                 </Pressable>
               </View>
             </View>
@@ -204,24 +269,24 @@ Thay những khi mà em đằng sau nằm ôm anh`;
               <View
                 style={{
                   backgroundColor: "#B55239",
-                  borderRadius: 10, 
+                  borderRadius: 10,
                   padding: 20,
-                  width: "100%", 
+                  width: "100%",
                   alignItems: "center",
                 }}
               >
                 <View
                   style={{
-                    height: showFullLyrics ? null : 100, 
-                    overflow: "hidden", 
+                    height: showFullLyrics ? null : 100,
+                    overflow: "hidden",
                     alignItems: "flex-start",
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 16,
-                      color: "white", 
-                      textAlign: "left", 
+                      color: "white",
+                      textAlign: "left",
                       marginBottom: 10,
                     }}
                   >
@@ -230,8 +295,8 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                   <Text
                     style={{
                       fontSize: 16,
-                      color: "white", 
-                      textAlign: "left", 
+                      color: "white",
+                      textAlign: "left",
                     }}
                   >
                     {lyrics}
@@ -239,12 +304,12 @@ Thay những khi mà em đằng sau nằm ôm anh`;
                 </View>
 
                 <Pressable
-                  onPress={() => setShowFullLyrics(!showFullLyrics)} 
+                  onPress={() => setShowFullLyrics(!showFullLyrics)}
                   style={{
                     marginTop: 10,
                     padding: 10,
-                    backgroundColor: "white", 
-                    borderRadius: 20, 
+                    backgroundColor: "white",
+                    borderRadius: 20,
                   }}
                 >
                   <Text style={{ color: "black", fontWeight: "bold" }}>
@@ -258,7 +323,7 @@ Thay những khi mà em đằng sau nằm ôm anh`;
               <View style={styles.imageContainer}>
                 <Image
                   style={styles.artistImage}
-                  source={require("../assets/Hieuthuhai.jpg")} 
+                  source={require("../assets/Hieuthuhai.jpg")}
                 />
                 <Text style={styles.aboutText}>About the artist</Text>
               </View>
@@ -302,48 +367,47 @@ Thay những khi mà em đằng sau nằm ôm anh`;
 
 export default CurrentSong;
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    padding: 0, 
+    padding: 0,
     backgroundColor: "#282828",
     borderRadius: 15,
     margin: 10,
-    shadowColor: "#000", 
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5, 
+    elevation: 5,
   },
   imageContainer: {
     width: "100%",
-    position: "relative", 
+    position: "relative",
   },
   artistImage: {
     width: "100%",
     height: 200,
-    borderTopLeftRadius: 15, 
-    borderTopRightRadius: 15, 
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
   },
   aboutText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
-    position: "absolute", 
-    top: 10, 
-    left: 16, 
+    position: "absolute",
+    top: 10,
+    left: 16,
   },
   artistInfoContainer: {
-    width: "100%", 
+    width: "100%",
     paddingHorizontal: 16,
     marginTop: 25,
   },
   artistRow: {
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   artistDetails: {
@@ -361,10 +425,10 @@ const styles = StyleSheet.create({
   },
   followButton: {
     backgroundColor: "transparent",
-    borderRadius: 20, 
+    borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderWidth: 1, 
+    borderWidth: 1,
     borderColor: "white",
   },
   followButtonText: {
