@@ -9,16 +9,22 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import axios from 'axios';  // Import axios
 import { useNavigation } from "@react-navigation/native";
+import {constants} from "../helper/constants";
 
 const SignUpScreen = () => {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(""); 
+  const [phone, setPhone] = useState(""); 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [emailError, setEmailError] = useState("");
+  const [usernameError, setUsernameError] = useState(""); 
+  const [phoneError, setPhoneError] = useState(""); 
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
@@ -29,8 +35,15 @@ const SignUpScreen = () => {
     return emailRegex.test(email);
   };
 
-  const handleSignUp = () => {
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/; 
+    return phoneRegex.test(phone);
+  };
+
+  const handleSignUp = async () => {
     setEmailError("");
+    setUsernameError(""); 
+    setPhoneError(""); 
     setPasswordError("");
     setConfirmPasswordError("");
 
@@ -41,6 +54,19 @@ const SignUpScreen = () => {
       isValid = false;
     } else if (!validateEmail(email)) {
       setEmailError("Please enter a valid email.");
+      isValid = false;
+    }
+
+    if (!username) {
+      setUsernameError("Username is required.");
+      isValid = false;
+    }
+
+    if (!phone) {
+      setPhoneError("Phone number is required.");
+      isValid = false;
+    } else if (!validatePhone(phone)) {
+      setPhoneError("Please enter a valid phone number.");
       isValid = false;
     }
 
@@ -61,12 +87,33 @@ const SignUpScreen = () => {
     }
 
     if (isValid) {
-      Alert.alert("Success", "Sign Up successful!", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("LoginDetail"), 
-        },
-      ]);
+      try {
+        // Gửi dữ liệu đến API register với body raw JSON
+        const response = await axios.post(`${constants.url}/user/register`, 
+          {
+            email: email,
+            username: username,
+            password: password,
+            phone: phone
+          }, 
+          {
+            headers: {
+              'Content-Type': 'application/json' // Đảm bảo gửi đúng dạng JSON
+            }
+          }
+        );
+  
+        // Hiển thị thông báo thành công
+        Alert.alert("Success", "Sign Up successful!", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("LoginDetail"),
+          },
+        ]);
+      } catch (error) {
+        console.error('Error signing up:', error.response ? error.response.data : error.message);
+        Alert.alert("Error", "Failed to sign up. Please try again.");
+      }
     }
   };
 
@@ -87,6 +134,25 @@ const SignUpScreen = () => {
           </Text>
         </View>
       </View>
+
+      {/* Username field */}
+      <Text style={styles.label}>Username</Text>
+      <TextInput
+        style={styles.input}
+        value={username}
+        onChangeText={(text) => setUsername(text)}
+      />
+      {usernameError ? <Text style={styles.errorText}>{usernameError}</Text> : null}
+
+      {/* Phone field */}
+      <Text style={styles.label}>Phone Number</Text>
+      <TextInput
+        style={styles.input}
+        keyboardType="numeric"
+        value={phone}
+        onChangeText={(text) => setPhone(text)}
+      />
+      {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
 
       {/* Email field */}
       <Text style={styles.label}>What's your email?</Text>

@@ -1,19 +1,51 @@
-import React from "react";
+import React, {  useContext, useEffect, useState } from "react";
 import { View, Text, Pressable, Image } from "react-native";
-import {  AntDesign } from "@expo/vector-icons";
+import { AntDesign, Entypo } from "@expo/vector-icons";
+import { constants } from "../helper/constants";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Player } from "../PlayerContext";
 
-const MiniPlayer = ({ onPress }) => {
-  const defaultTrack = {
-    artwork: require("../assets/ngu-mot-minh.jpg"),
-    title: "Ngủ một mình",
-    artist: "HIEUTHUHAI",
-  };
+const MiniPlayer = ({ onPress, dataSong }) => {
+  const [likeSong, setLikeSong] = useState(false);
+  const { lyricsBackgroundColor} = useContext(Player);
+
+  useEffect(() => {
+    const fetchArtistData = async () => {
+      try {
+        const accessToken = await AsyncStorage.getItem("accessToken");
+
+        if (!dataSong || !dataSong._id) {
+          // console.error("Invalid current track ID");
+          setLikeSong(false);
+          return;
+        }
+
+        const likeSongResponse = await axios.get(
+          `${constants.url}/user/likeSong/${dataSong._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        setLikeSong(likeSongResponse.data.content?.is_liked ?? false);
+      } catch (error) {
+        setLikeSong(false);
+      }
+    };
+
+    fetchArtistData();
+  }, []);
+
+  
 
   return (
     <Pressable
       onPress={onPress}
       style={{
-        backgroundColor: "#B55239",
+        backgroundColor: lyricsBackgroundColor,
         width: "95%",
         padding: 10,
         marginLeft: "auto",
@@ -32,7 +64,7 @@ const MiniPlayer = ({ onPress }) => {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Image
           style={{ width: 40, height: 40 }}
-          source={defaultTrack.artwork}
+          source={{ uri: dataSong.image }}
         />
         <View>
           <Text
@@ -44,7 +76,7 @@ const MiniPlayer = ({ onPress }) => {
               fontWeight: "bold",
             }}
           >
-            {defaultTrack.title}
+            {dataSong.name}
           </Text>
           <Text
             numberOfLines={1}
@@ -54,15 +86,23 @@ const MiniPlayer = ({ onPress }) => {
               color: "#ffffff",
             }}
           >
-            {defaultTrack.artist}
+            {dataSong.artistId.name}
           </Text>
         </View>
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <AntDesign name="checkcircle" size={24} color="#1DB954" />
+        <AntDesign
+          name={likeSong ? "checkcircle" : "pluscircleo"}
+          size={26}
+          color={likeSong ? "#1DB954" : "white"}
+        />
         <Pressable>
-          <AntDesign name="caretright" size={24} color="white" />
+          <Entypo
+            name="controller-play"
+            size={26}
+            color="white"
+          />
         </Pressable>
       </View>
     </Pressable>

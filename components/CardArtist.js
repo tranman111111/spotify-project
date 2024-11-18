@@ -1,12 +1,12 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 import React from "react";
 
-const ArtistCard = ({ item }) => {
+const CardArtist = ({ item , onPress}) => {
   return (
-    <View style={{ margin: 10 }}>
+    <Pressable onPress={onPress} style={{ margin: 10 }}>
       <Image
         style={{ width: 130, height: 130, borderRadius: 5 }}
-        source={{ uri: "https://i.pravatar.cc/49" }}
+        source={{ uri: item.avarta }}
       />
       <Text
         style={{
@@ -16,12 +16,12 @@ const ArtistCard = ({ item }) => {
           marginTop: 10,
         }}
       >
-        dsdsdsdsd
+        {item.name}
       </Text>
-    </View>
+    </Pressable>
   );
 };
 
-export default ArtistCard;
+export default CardArtist;
 
 const styles = StyleSheet.create({});

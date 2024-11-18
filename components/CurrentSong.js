@@ -5,363 +5,704 @@ import {
   StyleSheet,
   Text,
   View,
+  Animated,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
-import { BottomModal } from "react-native-modals";
+import Modal, { BottomModal } from "react-native-modals";
 import { ModalContent } from "react-native-modals";
 import { Audio } from "expo-av";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Player } from "../PlayerContext";
+import { constants } from "../helper/constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import * as Linking from "expo-linking";
 
 const CurrentSong = ({ visible, onClose }) => {
   const [showFullLyrics, setShowFullLyrics] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [sound, setSound] = useState(null);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0); // Thời gian hiện tại
+  const [duration, setDuration] = useState(0); // Tổng thời gian bài hát
+  const [modalVisible, setModalVisible] = useState(false);
+  const [audioQualityModalVisible, setAudioQualityModalVisible] =
+    useState(false);
+  const [selectedQuality, setSelectedQuality] = useState("128kbps");
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLooping, setIsLooping] = useState(false);
+  const [sound, setSound] = useState(null);
+  const { currentTrack, playlist, setCurrentTrack , gradientColors, lyricsBackgroundColor} = useContext(Player);
+  const soundRef = useRef(null);
+  const [likeSong, setLikeSong] = useState(false);
+  const [user, setUser] = useState(null);
+  
 
-  // Danh sách các bài hát
-  const playlist = [
-    {
-      title: "Ngủ Một Mình",
-      artist: "HIEUTHUHAI",
-      source: require("../assets/NguMotMinh.mp3"),
-    },
-    {
-      title: "Dễ đến dễ đi",
-      artist: "Quang Hùng MasterD",
-      source: require("../assets/DeDenDeDi.mp3"),
-    },
-    {
-      title: "BADBYE",
-      artist: "WEAN",
-      source: require("../assets/Badbye.mp3"),
-    },
-  ];
+  useEffect(() => {
+    const loadSound = async () => {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: currentTrack.audio }, // URL bài hát
+        { shouldPlay: isPlaying }
+      );
+      soundRef.current = sound;
+      setSound(sound);
+    };
 
-  const lyrics = `Hãy ở lại với anh thêm một ngày nữa thôi
-Vì anh không muốn phải ngủ một mình đêm nay đâu
-Bên ngoài và uống say hay là ta nằm đây cả đêm
-Chỉ là anh không muốn phải ngủ một mình đêm nay
-Yeah yeah
-Baby nói cho anh nghe em hãy nói cho anh nghe những điều mà
-Điều em muốn sau khi đêm nay trôi qua
-Là một trái tim hay những món quà
-Em muốn đôi tay anh đặt ở những nơi đâu
-Anh đã nhắm đôi môi từ những ngày đầu
-I'm needing all your love
-Nhưng em sẽ chẳng thể thấy anh khi qua ngày mai
-Bởi vì thiên bình đây chẳng thể nào bên ai mãi mãi
-Hãy hứa không nói cho ai
-Hình em gửi anh làm sao mà có thể yeah
-Thay những khi mà em đằng sau nằm ôm anh`;
+    if (currentTrack) {
+      loadSound();
 
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
-  };
-
-  const playTrack = async () => {
-    if (sound) {
-      await sound.unloadAsync();
+      return () => {
+        soundRef.current?.unloadAsync(); // Giải phóng âm thanh khi component unmount
+      };
     }
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      playlist[currentIndex].source,
-      { shouldPlay: true, isLooping }
-    );
-    setSound(newSound);
-    setIsPlaying(true);
+  }, [currentTrack]);
+
+  useEffect(() => {
+    const fetchArtistData = async () => {
+      try {
+        const accessToken = await AsyncStorage.getItem("accessToken");
+        const userId = await AsyncStorage.getItem("userId");
+        if (
+          !currentTrack ||
+          !currentTrack.artistId ||
+          !currentTrack.artistId._id
+        ) {
+          // console.error("Invalid current track or artist ID");
+          setIsFollowing(false);
+          return;
+        }
+
+        const followingResponse = await axios.get(
+          `${constants.url}/user/follow/${currentTrack.artistId._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        setIsFollowing(followingResponse.data.content?.follow_status ?? false);
+
+        if (!currentTrack || !currentTrack._id) {
+          // console.error("Invalid current track ID");
+          setLikeSong(false);
+          return;
+        }
+
+        const likeSongResponse = await axios.get(
+          `${constants.url}/user/likeSong/${currentTrack._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        setLikeSong(likeSongResponse.data.content?.is_liked ?? false);
+
+        const userResponse = await axios.get(`${constants.url}/user/${userId}`);
+
+        setUser(userResponse.data.content);
+      } catch (error) {
+        // console.error("Error fetching follow status:", error);
+        setIsFollowing(false);
+        setLikeSong(false);
+      }
+    };
+
+    if (currentTrack?.artistId?._id) {
+      fetchArtistData();
+    }
+  }, [currentTrack]);
+
+  const handleFollowToggle = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+
+      await axios.put(
+        `${constants.url}/user/follow`,
+        {
+          artistId: currentTrack.artistId._id,
+          follow_status: !isFollowing,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error("Error updating follow status:", error);
+    }
   };
 
-  const handleNextTrack = () => {
-    setCurrentIndex((currentIndex + 1) % playlist.length);
-  };
+  const handleLikeSongToggle = async (songId) => {
+    try {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      const response = await axios.put(
+        `${constants.url}/user/likeSong`,
+        {
+          songId: songId,
+          is_liked: !likeSong,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
-  const handlePreviousTrack = () => {
-    setCurrentIndex(
-      currentIndex === 0 ? playlist.length - 1 : currentIndex - 1
-    );
+      setLikeSong(!likeSong);
+    } catch (error) {
+      console.error("Error updating like song status:", error);
+    }
   };
 
   const playPauseTrack = async () => {
-    if (sound === null) {
-      await playTrack();
+    if (isPlaying) {
+      await soundRef.current.pauseAsync();
     } else {
-      if (isPlaying) {
-        await sound.pauseAsync();
-        setIsPlaying(false);
-      } else {
-        await sound.playAsync();
-        setIsPlaying(true);
-      }
+      await soundRef.current.playAsync();
     }
+    setIsPlaying(!isPlaying);
   };
 
-  const toggleLoop = async () => {
+  const handleNextTrack = async () => {
+    const currentIndex = playlist.findIndex(
+      (track) => track.id === currentTrack.id
+    );
+    const nextIndex = (currentIndex + 1) % playlist.length;
+    setCurrentTrack(playlist[nextIndex]); // Cập nhật bài hát hiện tại
+    await soundRef.current.unloadAsync(); // Giải phóng âm thanh hiện tại
+  };
+
+  const handlePreviousTrack = async () => {
+    const currentIndex = playlist.findIndex(
+      (track) => track.id === currentTrack.id
+    );
+    const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+    setCurrentTrack(playlist[prevIndex]); // Cập nhật bài hát hiện tại
+    await soundRef.current.unloadAsync(); // Giải phóng âm thanh hiện tại
+  };
+
+  const toggleLoop = () => {
     setIsLooping(!isLooping);
-    if (sound) {
-      await sound.setIsLoopingAsync(!isLooping);
-    }
+  };
+
+  const handleShuffle = () => {
+    setIsShuffling(!isShuffling);
   };
 
   useEffect(() => {
-    playTrack();
-    return sound
-      ? () => {
-          sound.unloadAsync();
+    if (isLooping) {
+      sound?.setIsLoopingAsync(true); // Bật chế độ lặp
+    } else {
+      sound?.setIsLoopingAsync(false); // Tắt chế độ lặp
+    }
+  }, [isLooping, sound]);
+
+  useEffect(() => {
+    const updateCurrentTime = async () => {
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        if (status.isPlaying) {
+          setCurrentTime(status.positionMillis / 1000); // Convert to seconds
+          setDuration(status.durationMillis / 1000); // Convert to seconds
         }
-      : undefined;
-  }, [currentIndex]);
+      }
+    };
+
+    const interval = setInterval(updateCurrentTime, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, [sound, isPlaying]);
+
+  const formatTime = (timeInSeconds) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
+  const progressPercentage = (currentTime / duration) * 100 || 0;
+
+  const shareViaEmail = async () => {
+    const songUrl = currentTrack.audio; // Đường dẫn bài hát
+    const songName = currentTrack.name;
+    const artistName = currentTrack.artistId.name;
+
+    // Tạo URL mailto với nội dung và tiêu đề email
+    const emailSubject = `Check out this song: ${songName}`;
+    const emailBody = `Hey, I found this song and thought you'd like it: "${songName}" by ${artistName}. You can listen to it here: ${songUrl}`;
+
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(
+      emailSubject
+    )}&body=${encodeURIComponent(emailBody)}`;
+
+    // Mở liên kết mailto để chia sẻ qua email
+    try {
+      await Linking.openURL(mailtoUrl);
+    } catch (error) {
+      console.error("Failed to share via email:", error);
+    }
+  };
+
   return (
-    <BottomModal
-      visible={visible}
-      swipeDirection={["up", "down"]}
-      swipeThreshold={200}
-    >
-      <LinearGradient
-        colors={["#B55239", "#000000"]}
-        style={{ height: "100%", width: "100%" }}
+    <>
+      <BottomModal
+        visible={visible}
+        swipeDirection={["up", "down"]}
+        swipeThreshold={200}
       >
-        <ModalContent style={{ height: "100%", width: "100%" }}>
-          <ScrollView
-            style={{ height: "100%", width: "100%", marginTop: 40 }}
-            showsVerticalScrollIndicator={false}
-          >
-            <Pressable
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+        <LinearGradient
+          colors={gradientColors}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <ModalContent style={{ height: "100%", width: "100%" }}>
+            <ScrollView
+              style={{ height: "100%", width: "100%", marginTop: 40 }}
+              showsVerticalScrollIndicator={false}
             >
-              <Pressable onPress={onClose}>
-                <AntDesign name="down" size={24} color="white" />
-              </Pressable>
-
-              <View style={{ alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 12, color: "white" }}>
-                  PLAYING FROM PLAYLIST
-                </Text>
-                <Text
-                  style={{ fontSize: 14, fontWeight: "bold", color: "white" }}
-                >
-                  {playlist[currentIndex].artist}
-                </Text>
-              </View>
-
-              <Entypo name="dots-three-vertical" size={24} color="white" />
-            </Pressable>
-
-            <View style={{ height: 70 }} />
-
-            <View style={{ padding: 10 }}>
-              <Image
-                style={{ width: "100%", height: 330, borderRadius: 4 }}
-                source={require("../assets/ngu-mot-minh.jpg")}
-              />
               <View
                 style={{
-                  marginTop: 20,
                   flexDirection: "row",
-                  justifyContent: "space-between",
                   alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <View>
-                  <Text
-                    style={{ fontSize: 18, fontWeight: "bold", color: "white" }}
-                  >
-                    {playlist[currentIndex].title}
+                <Pressable onPress={onClose}>
+                  <AntDesign name="down" size={24} color="white" />
+                </Pressable>
+
+                <View
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                >
+                  <Text style={{ fontSize: 12, color: "white" }}>
+                    PLAYING FROM PLAYLIST
                   </Text>
-                  <Text style={{ color: "#D3D3D3", marginTop: 4 }}>
-                    {playlist[currentIndex].artist}
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "bold", color: "white" }}
+                  >
+                    {currentTrack.artistId.name}
                   </Text>
                 </View>
 
-                <AntDesign name="checkcircle" size={26} color="#1DB954" />
+                <Pressable onPress={() => setModalVisible(true)}>
+                  <Entypo name="dots-three-vertical" size={24} color="white" />
+                </Pressable>
+
+                <Modal
+                  visible={modalVisible}
+                  onBackdropPress={() => setModalVisible(false)}
+                  style={styles.modal}
+                  animationIn="slideInUp"
+                  animationOut="slideOutDown"
+                  animationInTiming={300}
+                  animationOutTiming={300}
+                >
+                  <View style={styles.modalContainer}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <Image
+                        style={{ width: 40, height: 40 }}
+                        source={{ uri: currentTrack.image }}
+                      />
+                      <View>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 13,
+                            width: 220,
+                            color: "#ffffff",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {currentTrack.name}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 11,
+                            width: 220,
+                            color: "#ffffff",
+                          }}
+                        >
+                          {currentTrack.artistId.name}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.line} />
+                    <Pressable
+                      onPress={() => {
+                        /* remove from this playlist*/
+                      }}
+                      style={styles.pressableContainer}
+                    >
+                      <AntDesign name="minuscircleo" size={24} color="gray" />
+                      <Text style={styles.modalOption}>
+                        Remove from this playlist
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        // dfdsfdf
+                      }}
+                      style={styles.pressableContainer}
+                    >
+                      <Entypo name="user" size={24} color="gray" />
+                      <Text style={styles.modalOption}>View Artists</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setModalVisible(false);
+                        setAudioQualityModalVisible(true);
+                      }}
+                      style={styles.pressableContainer}
+                    >
+                      <MaterialIcons
+                        name="multitrack-audio"
+                        size={24}
+                        color="gray"
+                      />
+                      <Text style={styles.modalOption}>Audio Quality</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={shareViaEmail}
+                      style={styles.pressableContainer}
+                    >
+                      <AntDesign name="sharealt" size={24} color="gray" />
+                      <Text style={styles.modalOption}>Share</Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={styles.pressableContainer}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <AntDesign name="closecircleo" size={24} color="red" />
+                      <Text style={styles.modalClose}>Close</Text>
+                    </Pressable>
+                  </View>
+                </Modal>
+
+                {/* Modal Audio Quality */}
+                <Modal
+                  visible={audioQualityModalVisible}
+                  onBackdropPress={() => setAudioQualityModalVisible(false)}
+                  style={styles.modal}
+                  animationIn="slideInUp"
+                  animationOut="slideOutDown"
+                  animationInTiming={300}
+                  animationOutTiming={300}
+                >
+                  <View style={styles.modalContainer}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        color: "#ffffff",
+                        fontWeight: "bold",
+                        marginBottom: 10,
+                        textAlign: "center",
+                      }}
+                    >
+                      Audio Quality
+                    </Text>
+
+                    <View style={styles.line} />
+
+                    {/* Thêm nội dung cho modal Audio Quality ở đây */}
+                    <Pressable
+                      onPress={() => {
+                        setSelectedQuality("128kbps");
+                      }}
+                      style={styles.pressableContainer}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%",
+                        }}
+                      >
+                        <Text style={styles.modalOption}>128kbps</Text>
+                        {selectedQuality === "128kbps" && (
+                          <AntDesign name="check" size={24} color="green" />
+                        )}
+                      </View>
+                    </Pressable>
+                    {/* fee subcription */}
+
+                    {user && user.subscriptionType === "fee" && (
+                      <Pressable
+                        onPress={() => {
+                          setSelectedQuality("320kbps");
+                        }}
+                        style={styles.pressableContainer}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            width: "100%",
+                          }}
+                        >
+                          <Text style={styles.modalOption}>320kbps</Text>
+                          {selectedQuality === "320kbps" && (
+                            <AntDesign name="check" size={24} color="green" />
+                          )}
+                        </View>
+                      </Pressable>
+                    )}
+
+                    <Pressable
+                      onPress={() => setAudioQualityModalVisible(false)}
+                      style={styles.pressableContainer}
+                    >
+                      <Text style={styles.modalClose}>Close</Text>
+                    </Pressable>
+                  </View>
+                </Modal>
               </View>
 
-              <View style={{ marginTop: 10 }}>
+              <View style={{ height: 70 }} />
+
+              <View style={{ padding: 10 }}>
+                <Image
+                  style={{ width: "100%", height: 330, borderRadius: 4 }}
+                  source={{ uri: currentTrack.image }}
+                />
                 <View
                   style={{
-                    width: "100%",
-                    marginTop: 10,
-                    height: 3,
-                    backgroundColor: "gray",
-                    borderRadius: 5,
+                    marginTop: 20,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        color: "white",
+                      }}
+                    >
+                      {currentTrack.name}
+                    </Text>
+                    <Text style={{ color: "#D3D3D3", marginTop: 4 }}>
+                      {currentTrack.artistId.name}
+                    </Text>
+                  </View>
+                  {/* dfdsfdf */}
+                  <Pressable
+                    onPress={() => handleLikeSongToggle(currentTrack._id)}
+                  >
+                    <AntDesign
+                      name={likeSong ? "checkcircle" : "pluscircleo"}
+                      size={26}
+                      color={likeSong ? "#1DB954" : "white"}
+                    />
+                  </Pressable>
+                </View>
+
+                <View style={{ marginTop: 10 }}>
                   <View
                     style={{
-                      position: "absolute",
-                      top: -5,
-                      width: 12,
-                      height: 12,
-                      borderRadius: 12 / 2,
-                      backgroundColor: "white",
+                      width: "100%",
+                      marginTop: 10,
+                      height: 3,
+                      backgroundColor: "gray",
+                      borderRadius: 5,
                     }}
-                  />
+                  >
+                    <Animated.View
+                      style={{
+                        width: `${progressPercentage}%`,
+                        height: "100%",
+                        backgroundColor: "white",
+                        borderRadius: 5,
+                      }}
+                    />
+                  </View>
+                  <View
+                    style={{
+                      marginTop: 12,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text style={{ color: "#D3D3D3", fontSize: 15 }}>
+                      {formatTime(currentTime)}
+                    </Text>
+                    <Text style={{ color: "#D3D3D3", fontSize: 15 }}>
+                      {formatTime(duration)}
+                    </Text>
+                  </View>
                 </View>
+
+                {/* Điều khiển phát nhạc */}
                 <View
                   style={{
-                    marginTop: 12,
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    marginTop: 17,
                   }}
                 >
-                  <Text style={{ color: "#D3D3D3", fontSize: 15 }}>2:18</Text>
-                  <Text style={{ color: "#D3D3D3", fontSize: 15 }}>4:20</Text>
-                </View>
-              </View>
+                  <Pressable onPress={handleShuffle}>
+                    <Entypo
+                      name="shuffle"
+                      size={24}
+                      color={isShuffling ? "#1DB954" : "white"}
+                    />
+                  </Pressable>
 
-              {/* Điều khiển phát nhạc */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginTop: 17,
-                }}
-              >
-                <Pressable>
-                  <Entypo name="shuffle" size={24} color="white" />
-                </Pressable>
+                  <Pressable onPress={handlePreviousTrack}>
+                    <Ionicons name="play-skip-back" size={30} color="white" />
+                  </Pressable>
 
-                <Pressable onPress={handlePreviousTrack}>
-                  <Ionicons name="play-skip-back" size={30} color="white" />
-                </Pressable>
-
-                <Pressable
-                  onPress={playPauseTrack}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: "white",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Entypo
-                    name={isPlaying ? "controller-paus" : "controller-play"}
-                    size={26}
-                    color="black"
-                  />
-                </Pressable>
-
-                <Pressable onPress={handleNextTrack}>
-                  <Ionicons name="play-skip-forward" size={30} color="white" />
-                </Pressable>
-
-                <Pressable onPress={toggleLoop}>
-                  <Entypo
-                    name="loop"
-                    size={24}
-                    color={isLooping ? "#1DB954" : "white"}
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            {/* Phần lyrics */}
-            <Pressable style={{ marginTop: 20, paddingHorizontal: 10 }}>
-              <View
-                style={{
-                  backgroundColor: "#B55239",
-                  borderRadius: 10,
-                  padding: 20,
-                  width: "100%",
-                  alignItems: "center",
-                }}
-              >
-                <View
-                  style={{
-                    height: showFullLyrics ? null : 100,
-                    overflow: "hidden",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: "white",
-                      textAlign: "left",
-                      marginBottom: 10,
-                    }}
-                  >
-                    Lyrics preview
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: "white",
-                      textAlign: "left",
-                    }}
-                  >
-                    {lyrics}
-                  </Text>
-                </View>
-
-                <Pressable
-                  onPress={() => setShowFullLyrics(!showFullLyrics)}
-                  style={{
-                    marginTop: 10,
-                    padding: 10,
-                    backgroundColor: "white",
-                    borderRadius: 20,
-                  }}
-                >
-                  <Text style={{ color: "black", fontWeight: "bold" }}>
-                    {showFullLyrics ? "Hide lyrics" : "Show lyrics"}
-                  </Text>
-                </Pressable>
-              </View>
-            </Pressable>
-
-            <Pressable style={styles.container}>
-              <View style={styles.imageContainer}>
-                <Image
-                  style={styles.artistImage}
-                  source={require("../assets/Hieuthuhai.jpg")}
-                />
-                <Text style={styles.aboutText}>About the artist</Text>
-              </View>
-
-              {/* Thông tin nghệ sĩ */}
-              <View style={styles.artistInfoContainer}>
-                <View style={styles.artistRow}>
-                  {/* Tên nghệ sĩ và số người nghe */}
-                  <View style={styles.artistDetails}>
-                    <Text style={styles.artistName}>HIEUTHUHAI</Text>
-                    <Text style={styles.listenersText}>
-                      1.6M monthly listeners
-                    </Text>
-                  </View>
-
-                  {/* Nút Follow */}
                   <Pressable
-                    style={styles.followButton}
-                    onPress={handleFollowToggle}
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 30,
+                      backgroundColor: "white",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={playPauseTrack}
                   >
-                    <Text style={styles.followButtonText}>
-                      {isFollowing ? "Following" : "Follow"}
-                    </Text>
+                    <Entypo
+                      name={isPlaying ? "controller-paus" : "controller-play"}
+                      size={26}
+                      color="black"
+                    />
+                  </Pressable>
+
+                  <Pressable onPress={handleNextTrack}>
+                    <Ionicons
+                      name="play-skip-forward"
+                      size={30}
+                      color="white"
+                    />
+                  </Pressable>
+
+                  <Pressable onPress={toggleLoop}>
+                    <Entypo
+                      name="loop"
+                      size={24}
+                      color={isLooping ? "#1DB954" : "white"}
+                    />
                   </Pressable>
                 </View>
               </View>
 
-              <Text style={styles.artistDescription}>
-                Trần Minh Hiếu (sinh ngày 28 tháng 9 năm 1999), thường được biết
-                đến với nghệ danh HIEUTHUHAI hay cách viết khác là hieuthuhai,
-                là một nam rapper, ca sĩ kiêm sáng tác nhạc và diễn viên người
-                Việt Nam.
-              </Text>
-            </Pressable>
-          </ScrollView>
-        </ModalContent>
-      </LinearGradient>
-    </BottomModal>
+              {/* Phần lyrics */}
+              <Pressable style={{ marginTop: 20, paddingHorizontal: 10 }}>
+                <View
+                  style={{
+                    backgroundColor: lyricsBackgroundColor,
+                    borderRadius: 10,
+                    padding: 20,
+                    width: "100%",
+                    alignItems: "center",
+                  }}
+                >
+                  <View
+                    style={{
+                      height: showFullLyrics ? null : 100,
+                      overflow: "hidden",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: "white",
+                        textAlign: "left",
+                        marginBottom: 10,
+                      }}
+                    >
+                      Lyrics preview
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: "white",
+                        textAlign: "left",
+                      }}
+                    >
+                      {currentTrack.lyrics}
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    onPress={() => setShowFullLyrics(!showFullLyrics)}
+                    style={{
+                      marginTop: 10,
+                      padding: 10,
+                      backgroundColor: "white",
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Text style={{ color: "black", fontWeight: "bold" }}>
+                      {showFullLyrics ? "Hide lyrics" : "Show lyrics"}
+                    </Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+
+              <Pressable style={styles.container}>
+                <View style={styles.imageContainer}>
+                  <Image
+                    style={styles.artistImage}
+                    source={{ uri: currentTrack.artistId.avarta }}
+                  />
+                  <Text style={styles.aboutText}>About the artist</Text>
+                </View>
+
+                {/* Thông tin nghệ sĩ */}
+                <View style={styles.artistInfoContainer}>
+                  <View style={styles.artistRow}>
+                    {/* Tên nghệ sĩ và số người nghe */}
+                    <View style={styles.artistDetails}>
+                      <Text style={styles.artistName}>
+                        {currentTrack.artistId.name}
+                      </Text>
+                    </View>
+
+                    {/* Nút Follow */}
+                    <Pressable
+                      style={styles.followButton}
+                      onPress={handleFollowToggle}
+                    >
+                      <Text style={styles.followButtonText}>
+                        {isFollowing ? "Following" : "Follow"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                <Text style={styles.artistDescription}>
+                  {currentTrack.artistId.bio}
+                </Text>
+              </Pressable>
+            </ScrollView>
+          </ModalContent>
+        </LinearGradient>
+      </BottomModal>
+    </>
   );
 };
 
@@ -441,5 +782,46 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: "left",
     paddingHorizontal: 16,
+  },
+
+  modal: {
+    justifyContent: "flex-end", // Đặt modal ở cuối trang
+    margin: 0, // Không có khoảng cách
+  },
+  modalContainer: {
+    padding: 20,
+    backgroundColor: "#282828",
+    borderRadius: 10,
+    alignItems: "left",
+    width: 415,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 20,
+  },
+  pressableContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingRight: 10,
+  },
+  modalOption: {
+    marginLeft: 15,
+    color: "white",
+    fontSize: 16,
+  },
+  modalClose: {
+    fontSize: 16,
+    color: "#FF0000",
+    marginLeft: 15,
+  },
+  line: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#808080",
+    width: "100%",
+    marginVertical: 10,
   },
 });

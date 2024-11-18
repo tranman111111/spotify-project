@@ -6,62 +6,150 @@ import {
   Text,
   View,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, Entypo } from "@expo/vector-icons";
+import { Ionicons, Entypo, AntDesign } from "@expo/vector-icons";
+import { constants } from "../helper/constants";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Player } from "../PlayerContext";
 
 const { width } = Dimensions.get("window");
 
-const ArtistDetailScreen = ({ navigation }) => {
+const ArtistDetailScreen = ({ navigation, route }) => {
   const [isFollowing, setIsFollowing] = useState(false);
+  const { artistId } = route.params;
+  const [artistData, setArtistData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [songs, setSongs] = useState([]);
+  const [likes, setLikes] = useState([]);
 
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
+  const { currentTrack, setCurrentTrack, playlist, setPlaylist } = useContext(Player);
+
+ 
+  useEffect(() => {
+    const fetchArtistData = async () => {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      try {
+        const response = await axios.get(
+          `${constants.url}/artist/getById?id=${artistId}`
+        );
+        setArtistData(response.data.content);
+
+        const songsResponse = await axios.get(
+          `${constants.url}/song/getByArtist/?id=${artistId}`
+        );
+        const fetchedSongs = songsResponse.data.content;
+
+        if (fetchedSongs.length === 0) {
+          setSongs([]);
+        } else {
+          setSongs(fetchedSongs);
+          const likeStatuses = [];
+
+          for (let i = 0; i < fetchedSongs.length; i++) {
+            const songId = fetchedSongs[i]._id;
+            try {
+              const likeSongResponse = await axios.get(
+                `${constants.url}/user/likeSong/${songId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                  },
+                }
+              );
+              likeStatuses.push(likeSongResponse.data.content.is_liked);
+            } catch (likeSongError) {
+              likeStatuses.push(false);
+            }
+          }
+
+          setLikes(likeStatuses);
+        }
+
+        const followingResponse = await axios.get(
+          `${constants.url}/user/follow/${artistId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        setIsFollowing(followingResponse.data.content.follow_status);
+      } catch (error) {
+        console.error("Error fetching artist data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArtistData();
+  }, [artistId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  const handleFollowToggle = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+
+      await axios.put(
+        `${constants.url}/user/follow`,
+        {
+          artistId: artistId,
+          follow_status: !isFollowing,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error("Error updating follow status:", error);
+    }
   };
 
-  const songData = [
-    {
-      song: "Ngủ một mình (tình rất tình)",
-      image: require("../assets/ngu-mot-minh.jpg"),
-      listens: "1.2M", // Thêm số lượt nghe
-    },
-    {
-      song: "Dễ đến dễ đi",
-      image: require("../assets/de-den-de-di.jpg"),
-      listens: "900K",
-    },
-    {
-      song: "BADBYE",
-      image: require("../assets/badbye.jpg"),
-      listens: "3.5M",
-    },
-    {
-      song: "Mặt trời của em",
-      image: require("../assets/mat-troi-cua-em.jpg"),
-      listens: "500K",
-    },
-    {
-      song: "Nơi này có anh",
-      image: require("../assets/noi-nay-co-anh.webp"),
-      listens: "2.1M",
-    },
-    {
-      song: "Nơi này có anh",
-      image: require("../assets/noi-nay-co-anh.webp"),
-      listens: "2.1M",
-    },
-    {
-      song: "Nơi này có anh",
-      image: require("../assets/noi-nay-co-anh.webp"),
-      listens: "2.1M",
-    },
-    {
-      song: "Nơi này có anh",
-      image: require("../assets/noi-nay-co-anh.webp"),
-      listens: "2.1M",
-    },
-  ];
+  const handleLikeSongToggle = async (songId, index) => {
+    try {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      const response = await axios.put(
+        `${constants.url}/user/likeSong`,
+        {
+          songId: songId,
+          is_liked: !likes[index], 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const newLikes = [...likes];
+        newLikes[index] =
+          response.data.content.is_liked !== undefined
+            ? response.data.content.is_liked
+            : false;
+        setLikes(newLikes);
+      } else {
+        console.error("Failed to update like status", response.data);
+      }
+    } catch (error) {
+      console.error("Error updating like song status:", error);
+    }
+  };
+
+  const handlePlaySong = (selectedSong) => {
+    setCurrentTrack(selectedSong); // Cập nhật bài hát hiện tại
+    setPlaylist(songs); // Cập nhật danh sách phát
+  };
 
   return (
     <LinearGradient colors={["#282828", "#1c1c1c"]} style={{ flex: 1 }}>
@@ -69,7 +157,7 @@ const ArtistDetailScreen = ({ navigation }) => {
         {/* Ảnh nghệ sĩ */}
         <View style={{ marginHorizontal: 0 }}>
           <Image
-            source={require("../assets/Hieuthuhai.jpg")}
+            source={{ uri: artistData.avarta }}
             style={styles.artistImage}
           />
           <Pressable
@@ -78,7 +166,7 @@ const ArtistDetailScreen = ({ navigation }) => {
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </Pressable>
-          <Text style={styles.artistName}>HIEUTHUHAI</Text>
+          <Text style={styles.artistName}>{artistData.name}</Text>
         </View>
 
         <View
@@ -91,7 +179,13 @@ const ArtistDetailScreen = ({ navigation }) => {
             gap: 7,
           }}
         >
-          <Text style={{ color: "#989898" }}>1.6M monthly listeners</Text>
+          <Text style={{ color: "#989898" }}>
+            {Intl.NumberFormat("en", {
+              notation: "compact",
+              compactDisplay: "short",
+            }).format(artistData.monthly_views)}{" "}
+            monthly listeners
+          </Text>
         </View>
         <Pressable
           style={{
@@ -101,8 +195,19 @@ const ArtistDetailScreen = ({ navigation }) => {
             marginHorizontal: 10,
           }}
         >
-          <Pressable style={styles.followButton} onPress={handleFollowToggle}>
-            <Text style={styles.followButtonText}>
+          <Pressable
+            style={[
+              styles.followButton,
+              !isFollowing && styles.followButtonOutline,
+            ]}
+            onPress={handleFollowToggle}
+          >
+            <Text
+              style={[
+                styles.followButtonText,
+                !isFollowing && styles.followButtonTextWhite,
+              ]}
+            >
               {isFollowing ? "Following" : "Follow"}
             </Text>
           </Pressable>
@@ -123,6 +228,7 @@ const ArtistDetailScreen = ({ navigation }) => {
                 alignItems: "center",
                 backgroundColor: "#1DB954",
               }}
+              onPress={() => handlePlaySong(songs[0])}
             >
               <Entypo name="controller-play" size={24} color="black" />
             </Pressable>
@@ -144,41 +250,66 @@ const ArtistDetailScreen = ({ navigation }) => {
         </View>
 
         <View style={{ marginTop: 10, marginHorizontal: 12 }}>
-          {songData.map((item, index) => (
-            <Pressable
-              key={index}
-              style={{
-                marginVertical: 10,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              {/* Thứ tự bài hát */}
-              <Text style={styles.songOrder}>{index + 1}</Text>
+          {songs.length === 0 ? (
+            <Text style={{ color: "#989898", fontSize: 16 }}>
+              Chưa có bài hát
+            </Text>
+          ) : (
+            songs.map((item, index) => (
+              <Pressable
+                key={index}
+                style={{
+                  marginVertical: 10,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+                onPress={() => handlePlaySong(item)}
+              >
+                <Text style={styles.songOrder}>{index + 1}</Text>
 
-              {/* Ảnh bài hát */}
-              <Image
-                source={item.image}
-                style={{ width: 50, height: 50, borderRadius: 5 }}
-              />
+                <Image
+                  source={{ uri: item.image }}
+                  style={{ width: 50, height: 50, borderRadius: 5 }}
+                />
 
-              {/* Thông tin bài hát */}
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text
-                  style={{ fontSize: 16, fontWeight: "500", color: "white" }}
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text
+                    style={{ fontSize: 16, fontWeight: "500", color: "white" }}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: "#989898" }}>
+                    {Intl.NumberFormat().format(item.playCount)} listens
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 7,
+                    marginHorizontal: 10,
+                  }}
                 >
-                  {item.song}
-                </Text>
-                <Text style={{ fontSize: 14, color: "#989898" }}>
-                  {item.listens} listens
-                </Text>
-              </View>
-
-              {/* Icon dấu ba chấm */}
-              <Entypo name="dots-three-vertical" size={24} color="#989898" />
-            </Pressable>
-          ))}
+                  <Pressable
+                    onPress={() => handleLikeSongToggle(item._id, index)}
+                  >
+                    <AntDesign
+                      name={likes[index] ? "checkcircle" : "pluscircleo"}
+                      size={26}
+                      color={likes[index] ? "#1DB954" : "white"}
+                    />
+                  </Pressable>
+                  <Entypo
+                    name="dots-three-vertical"
+                    size={24}
+                    color="#C0C0C0"
+                  />
+                </View>
+              </Pressable>
+            ))
+          )}
         </View>
       </ScrollView>
     </LinearGradient>
@@ -197,33 +328,39 @@ const styles = StyleSheet.create({
     top: 30,
     left: 16,
     backgroundColor: "rgba(0, 0, 0, 0.4)",
-    borderRadius: 25,
+    borderRadius: 50,
     padding: 10,
   },
   artistName: {
     position: "absolute",
     bottom: 10,
     left: 16,
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: "bold",
     color: "white",
-  },
-  songOrder: {
-    fontSize: 16,
-    color: "white",
-    marginRight: 20,
-    marginLeft: 10,
   },
   followButton: {
+    borderRadius: 10,
     backgroundColor: "transparent",
-    borderRadius: 5,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: "#1DB954",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+  },
+  followButtonOutline: {
+    borderWidth: 1,
+    borderColor: 'white',
+    backgroundColor: 'transparent',
   },
   followButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: '#1DB954',
+    fontWeight: 'bold',
+  },
+  followButtonTextWhite: {
+    color: 'white',
+  },
+  songOrder: {
+    color: "#989898",
+    fontSize: 16,
   },
 });

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,27 +9,48 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import { useNavigation } from '@react-navigation/native';
-
-
-const data = [
-  { id: "1", name: "Sơn Tùng MTP", logo: require("../assets/son-tung.webp") },
-  { id: "2", name: "HIEUTHUHAI", logo: require("../assets/Hieuthuhai.jpg") },
-  { id: "3", name: "NEGAV", logo: require("../assets/Negav.jpg") },
-  {
-    id: "4",
-    name: "Quang Hùng MasterD",
-    logo: require("../assets/quang-hung.webp"),
-  }
-];
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { constants } from "../helper/constants";
 
 const LibraryScreen = () => {
-
   const navigation = useNavigation();
+  const [artists, setArtists] = useState([]);
+  const [songs, setSongs] = useState([]);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchLikedArtists = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+      try {
+        const responseArtist = await axios.get(
+          `${constants.url}/artist/likedArtists?userId=${userId}`
+        );
+        setArtists(responseArtist.data.content);
+
+        const responseSong = await axios.get(
+          `${constants.url}/song/likedSongs?userId=${userId}`
+        );
+        setSongs(responseSong.data.content);
+
+        const responseUser = await axios.get(`${constants.url}/user/${userId}`);
+        setUser(responseUser.data.content);
+      } catch (error) {
+        console.error("Error fetching liked artists:", error);
+      }
+    };
+    fetchLikedArtists();
+  }, [artists]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('ArtistDetail')}>
-      <Image source={item.logo} style={styles.logo} />
+    <TouchableOpacity
+      style={styles.item} 
+      onPress={() =>
+        navigation.navigate("ArtistDetail", { artistId: item._id })
+      }
+    >
+      <Image source={{ uri: item.avarta }} style={styles.logo} />
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{item.name}</Text>
         <Text style={styles.subtitle}>Artist</Text>
@@ -41,7 +62,14 @@ const LibraryScreen = () => {
     <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
       <View style={{ marginTop: 30, paddingHorizontal: 16 }}>
         <View style={styles.header}>
-          <Image source={require("../assets/ava.jpg")} style={styles.logo} />
+          <Image
+            source={
+              user && user.image
+                ? { uri: user.image }
+                : require("../assets/ava_default.jpg")
+            }
+            style={styles.logo}
+          />
           <Text style={styles.headerText}>Your Library</Text>
         </View>
         {/* <View style={styles.tabs}>
@@ -54,9 +82,12 @@ const LibraryScreen = () => {
         </View> */}
         {/* <Text style={styles.subHeader}>Favorite Artists</Text> */}
 
-        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('LikedSong')} >
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => navigation.navigate("LikedSong")}
+        >
           <LinearGradient
-            colors={["#33006F", "#FFFFFF"]} 
+            colors={["#33006F", "#FFFFFF"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
@@ -64,7 +95,7 @@ const LibraryScreen = () => {
               height: 55,
               justifyContent: "center",
               alignItems: "center",
-              borderRadius: 8, 
+              borderRadius: 8,
               marginRight: 15,
             }}
           >
@@ -74,13 +105,16 @@ const LibraryScreen = () => {
           {/* Phần thông tin */}
           <View style={styles.infoContainer}>
             <Text style={styles.title}> Liked Songs</Text>
-            <Text style={styles.subtitle}><AntDesign name="pushpin" size={20} color="#1ED760" /> Playlist . 5 songs</Text>
+            <Text style={styles.subtitle}>
+              <AntDesign name="pushpin" size={20} color="#1ED760" /> Playlist .{" "}
+              {songs.length} songs
+            </Text>
           </View>
         </TouchableOpacity>
         <FlatList
-          data={data}
+          data={artists}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           style={styles.list}
         />
       </View>
@@ -103,7 +137,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff", 
+    color: "#fff",
   },
   subHeader: {
     fontSize: 20,

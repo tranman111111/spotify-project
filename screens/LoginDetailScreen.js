@@ -9,34 +9,34 @@ import {
 import React, { useState, useContext } from "react";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios"; // Import axios
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { Player } from "../PlayerContext"; 
+import { Player } from "../PlayerContext";
+import { constants } from "../helper/constants";
 
 const LoginDetailScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [errorMessageEmail, setErrorMessageEmail] = useState(""); 
-  const [errorMessagePassword, setErrorMessagePassword] = useState(""); 
+  const [errorMessageEmail, setErrorMessageEmail] = useState("");
+  const [errorMessagePassword, setErrorMessagePassword] = useState("");
 
   const navigation = useNavigation();
   const { setIsLoggedIn } = useContext(Player);
-
-  const validCredentials = {
-    email: "man123@gmail.com",
-    password: "Man123",
-  };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Reset lại thông báo lỗi
     setErrorMessageEmail("");
     setErrorMessagePassword("");
 
     let valid = true;
 
+    // Kiểm tra email
     if (!email) {
       setErrorMessageEmail("Email is required.");
       valid = false;
@@ -45,6 +45,7 @@ const LoginDetailScreen = () => {
       valid = false;
     }
 
+    // Kiểm tra mật khẩu
     if (!password) {
       setErrorMessagePassword("Password is required.");
       valid = false;
@@ -54,22 +55,66 @@ const LoginDetailScreen = () => {
       );
       valid = false;
     }
+
     if (valid) {
-      if (
-        email === validCredentials.email &&
-        password === validCredentials.password
-      ) {
-        Alert.alert("Success", "Login successful!", [
-          {
-            text: "OK",
-            onPress: () => {
-              setIsLoggedIn(true); 
-              navigation.navigate("Main"); 
-            },
-          },
-        ]);
-      } else {
-        setErrorMessageEmail("Invalid email or password.");
+      try {
+        // Gửi request lấy danh sách người dùng
+        const usersResponse = await axios.get(`${constants.url}/user`);
+        const user = usersResponse.data.content.find((u) => u.email === email);
+
+        // Kiểm tra nếu email không tồn tại
+        if (!user) {
+          Alert.alert("Error", "Email không tồn tại.");
+        } else {
+          // Gửi request đăng nhập
+          const loginResponse = await axios.post(
+            `${constants.url}/user/login`,
+            {
+              email: email,
+              password: password,
+            }
+          );
+
+          // Kiểm tra trạng thái phản hồi từ API
+          if (loginResponse.status === 200) {
+            const { accessToken } = loginResponse.data; // Lấy accessToken từ phản hồi
+            const { _id } = loginResponse.data.content; // Lấy id của user
+
+            // Lưu accessToken và id vào AsyncStorage
+            await AsyncStorage.setItem("accessToken", accessToken);
+            await AsyncStorage.setItem("userId", _id); // Lưu id của user
+
+            // Hiển thị thông báo đăng nhập thành công
+            Alert.alert("Success", "Login successful!", [
+              {
+                text: "OK",
+                onPress: () => {
+                  setIsLoggedIn(true);
+                  navigation.navigate("Main");
+                },
+              },
+            ]);
+          }
+        }
+      } catch (error) {
+        // Xử lý các lỗi khác nhau dựa vào phản hồi API
+        if (error.response) {
+          const { status } = error.response;
+          if (status === 401) {
+            setErrorMessagePassword("Mật khẩu không chính xác.");
+            Alert.alert("Error", "Mật khẩu không chính xác.");
+          } else if (status === 404) {
+            Alert.alert("Error", "API endpoint không tồn tại.");
+          } else {
+            Alert.alert("Error", "Có lỗi xảy ra. Vui lòng thử lại.");
+          }
+        } else {
+          // Xử lý lỗi mạng
+          Alert.alert(
+            "Error",
+            "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối của bạn."
+          );
+        }
       }
     }
   };
@@ -84,7 +129,7 @@ const LoginDetailScreen = () => {
         <Icon name="arrow-back" size={28} color="#fff" />
       </TouchableOpacity>
 
-      <Text style={styles.label}>Email or username</Text>
+      <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
         keyboardType="email-address"
@@ -99,7 +144,7 @@ const LoginDetailScreen = () => {
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.input}
-          secureTextEntry={!isPasswordVisible} 
+          secureTextEntry={!isPasswordVisible}
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
@@ -108,7 +153,7 @@ const LoginDetailScreen = () => {
           onPress={() => setPasswordVisible(!isPasswordVisible)}
         >
           <Icon
-            name={isPasswordVisible ? "eye-off" : "eye"} 
+            name={isPasswordVisible ? "eye-off" : "eye"}
             size={24}
             color="#aaa"
           />
@@ -145,10 +190,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     padding: 10,
-    zIndex: 1, 
+    zIndex: 1,
   },
   label: {
     color: "#fff",
@@ -196,16 +241,16 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 35,
-    borderColor: "#ffffff", 
-    borderWidth: 1, 
-    borderRadius: 25, 
-    paddingVertical: 10, 
+    borderColor: "#ffffff",
+    borderWidth: 1,
+    borderRadius: 25,
+    paddingVertical: 10,
     paddingHorizontal: 20,
   },
   linkText: {
-    color: "#ffffff", 
+    color: "#ffffff",
     fontSize: 14,
-    textAlign: "center", 
+    textAlign: "center",
     fontWeight: "bold",
   },
   errorText: {

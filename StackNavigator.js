@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
-import PlaylistScreen from "./screens/PlaylistScreen";
 import LikedSongScreen from "./screens/LikedSongScreen";
 import LoginDetailScreen from "./screens/LoginDetailScreen";
 import SignUpScreen from "./screens/SignUpScreen";
@@ -12,6 +11,9 @@ import PremiumScreen from "./screens/PremiumScreen";
 import ArtistDetailScreen from "./screens/ArtistDetailScreen";
 import { Entypo, Ionicons, AntDesign } from "@expo/vector-icons";
 import LibraryScreen from "./screens/LibraryScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import PlaylistGenresScreen from "./screens/PlaylistGenresScreen";
+import CheckoutScreen from "./screens/CheckoutScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -20,7 +22,9 @@ function HomeStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Playlist" component={PlaylistScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PlaylistGenres" component={PlaylistGenresScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LikedSong" component={LikedSongScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -29,6 +33,9 @@ function SearchStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PlaylistGenres" component={PlaylistGenresScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} options={{ headerShown: false }} />
+      {/* <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} /> */}
     </Stack.Navigator>
   );
 }
@@ -40,6 +47,16 @@ function LibraryStack() {
       <Stack.Screen name="LikedSong" component={LikedSongScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} options={{ headerShown: false }} />
       
+    </Stack.Navigator>
+  );
+}
+
+
+function PremiumStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Premium" component={PremiumScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -96,8 +113,8 @@ function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Premium"
-        component={PremiumScreen}
+        name="PremiumStack"
+        component={PremiumStack}
         options={{
           tabBarLabel: "Premium",
           headerShown: false,
@@ -118,6 +135,7 @@ function Navigation() {
         <Stack.Screen name="SignUpDetail" component={SignUpScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginDetail" component={LoginDetailScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

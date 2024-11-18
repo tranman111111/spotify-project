@@ -6,19 +6,37 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/MaterialIcons"; 
+import Icon from "react-native-vector-icons/MaterialIcons";
 
-const PremiumScreen = () => {
+const PremiumScreen = ({ navigation }) => {
+  const handleUpgrade = () => {
+    Alert.alert(
+      "Nâng cấp Premium",
+      "Bạn đã chọn gói Premium Individual.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Proceed to Checkout",
+          onPress: () => navigation.navigate("Checkout"),
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* Header section */}
       <LinearGradient colors={["#1DB954", "#121212"]} style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.titleContainer}>
             <Image
-              source={require("../assets/logo.png")} 
+              source={require("../assets/logo.png")}
               style={styles.iconImage}
             />
             <Text style={styles.premiumText}>Premium</Text>
@@ -29,9 +47,10 @@ const PremiumScreen = () => {
         </View>
       </LinearGradient>
 
-      <TouchableOpacity style={styles.upgradeButton}>
+      <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgrade}>
         <Text style={styles.upgradeText}>Get Premium Individual</Text>
       </TouchableOpacity>
+
       <Text style={styles.promoText}>
         29,500₫ for 2 months, then 59,000₫ per month after. Offer only available
         if you haven't tried Premium before.
@@ -66,6 +85,9 @@ const styles = StyleSheet.create({
   header: {
     height: 320,
     position: "relative",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: "hidden",
   },
   headerContent: {
     flex: 1,
@@ -79,38 +101,46 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   titleContainer: {
-    flexDirection: "row", 
-    alignItems: "center", 
-    marginBottom: 10, 
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
   iconImage: {
     width: 30,
     height: 30,
-    marginRight: 8, 
+    marginRight: 8,
   },
   premiumText: {
-    color: "#fff", 
+    color: "#fff",
     fontSize: 18,
-    marginRight: 10, 
+    marginRight: 10,
   },
   title: {
     color: "#fff",
     fontSize: 20,
-    fontWeight: "400", 
+    fontWeight: "400",
     textAlign: "left",
-    lineHeight: 24, 
+    lineHeight: 24,
   },
   upgradeButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1DB954",
     paddingVertical: 12,
     width: "90%",
     alignSelf: "center",
     borderRadius: 25,
     marginBottom: 10,
     marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   upgradeText: {
-    color: "#000",
+    color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
     textAlign: "center",
@@ -119,44 +149,39 @@ const styles = StyleSheet.create({
     color: "#b3b3b3",
     fontSize: 14,
     marginTop: 10,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 10,
+    paddingHorizontal: 20,
   },
   linkText: {
-    textDecorationLine: "underline",
-    color: "#1ED760",
+    color: "#1DB954",
+    fontWeight: "bold",
   },
   featuresSection: {
-    width: "90%",
-    alignSelf: "center",
     padding: 20,
-    paddingTop: 30,
-    backgroundColor: "#282828",
-    borderRadius: 15,
   },
   sectionTitle: {
-    color: "#fff",
     fontSize: 20,
-    marginBottom: 20,
-    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 10,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#b3b3b3",
+    marginBottom: 10,
   },
   featureItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-  },
-  featureText: {
-    color: "#fff",
-    fontSize: 16,
+    marginBottom: 10,
+    backgroundColor: "#1f1f1f", // Màu nền cho các mục tính năng
+    padding: 10,
+    borderRadius: 10,
   },
   icon: {
     marginRight: 10,
   },
-  divider: {
-    height: 0.5,
-    backgroundColor: "#b3b3b3",
-    marginBottom: 15,
+  featureText: {
+    color: "#b3b3b3",
+    fontSize: 16,
   },
 });
 

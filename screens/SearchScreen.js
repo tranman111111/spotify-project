@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -12,64 +12,110 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios"; // Nhập axios
+import { constants } from "../helper/constants";
+import { useNavigation } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Player } from "../PlayerContext";
 
 const SearchScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const genres = [
-    { name: "Pop", color: "#1DB954", image: require("../assets/pop.png") },
-    {
-      name: "Hip Hop",
-      color: "#E13300",
-      image: require("../assets/hiphop.jpg"),
-    },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-    { name: "Rock", color: "#A9A9A9", image: require("../assets/rock.jpg") },
-    { name: "Jazz", color: "#FFD700", image: require("../assets/jazz.jpg") },
-  ];
+  const [genres, setGenres] = useState([]); // Khởi tạo genres
+  const [searchResults, setSearchResults] = useState([]); // Kết quả tìm kiếm
+  const navigation = useNavigation();
+  const [user, setUser] = useState(null);
 
-  const suggestions = [
-    "Pop Songs",
-    "Hip Hop Beats",
-    "Rock Classics",
-    "Jazz Standards",
-    "Sơn Tùng M-TP",
-    "HIEUTHUHAI",
-    "Nơi này có",
-  ];
+  const { setCurrentTrack, setPlaylist } = useContext(Player);
+
+  // Hàm để tạo màu ngẫu nhiên
+  const getRandomColor = () => {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
+  // Lấy dữ liệu genre từ API
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await axios.get(`${constants.url}/genre`);
+        console.log(response.data); // Kiểm tra dữ liệu trả về
+        if (response.data.cotent) {
+          const genreData = response.data.cotent.map((genre) => ({
+            ...genre,
+            color: getRandomColor(),
+          }));
+          setGenres(genreData);
+        } else {
+          console.error("Không có dữ liệu genre"); // Thông báo lỗi nếu không có dữ liệu
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchUserById = async () => {
+      try {
+        // Lấy userId từ AsyncStorage
+        const userId = await AsyncStorage.getItem("userId");
+        if (userId) {
+          const response = await axios.get(`${constants.url}/user/${userId}`);
+          setUser(response.data.content);
+        } else {
+          console.error("No user ID found.");
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchGenres();
+    fetchUserById();
+  }, []);
+
+  // Tìm kiếm item từ API
+  const searchItem = async (query) => {
+    if (query.length > 0) {
+      try {
+        const response = await axios.get(`${constants.url}/song/searchItem`, {
+          params: { q: query },
+        });
+        setSearchResults(response.data.content); // Cập nhật kết quả tìm kiếm
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      setSearchResults([]); // Nếu không có query, reset kết quả
+    }
+  };
+
+  // Xử lý khi thay đổi giá trị tìm kiếm
+  const handleSearchInputChange = (text) => {
+    setSearchQuery(text);
+    searchItem(text); // Gọi hàm tìm kiếm
+  };
+
+  const handleGenrePress = (genre) => {
+    navigation.navigate("PlaylistGenres", { genreSlug: genre.slug });
+  };
 
   return (
     <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Image source={require("../assets/ava.jpg")} style={styles.logo} />
+          <Image
+            source={
+              user && user.image
+                ? { uri: user.image }
+                : require("../assets/ava_default.jpg")
+            }
+            style={styles.logo}
+          />
           <Text style={styles.headerText}>Search</Text>
         </View>
 
@@ -82,6 +128,8 @@ const SearchScreen = () => {
             style={styles.searchInput}
             placeholder="What do you want to listen to?"
             placeholderTextColor="#4F4F4F"
+            value={searchQuery}
+            onChangeText={handleSearchInputChange}
           />
         </Pressable>
 
@@ -92,9 +140,13 @@ const SearchScreen = () => {
               <TouchableOpacity
                 key={index}
                 style={[styles.genreBox, { backgroundColor: genre.color }]}
+                onPress={() => handleGenrePress(genre)}
               >
                 <Text style={styles.genreText}>{genre.name}</Text>
-                <Image source={genre.image} style={styles.genreImage} />
+                <Image
+                  source={{ uri: genre.image }}
+                  style={styles.genreImage}
+                />
               </TouchableOpacity>
             ))}
           </View>
@@ -116,20 +168,97 @@ const SearchScreen = () => {
                 placeholder="What do you want to listen to?"
                 placeholderTextColor="gray"
                 value={searchQuery}
-                onChangeText={setSearchQuery}
+                onChangeText={handleSearchInputChange}
               />
             </View>
             <ScrollView>
-              {searchQuery.length > 0 ? (
-                suggestions
-                  .filter((item) =>
-                    item.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((suggestion, index) => (
-                    <TouchableOpacity key={index} style={styles.suggestionItem}>
-                      <Text style={styles.suggestionText}>{suggestion}</Text>
-                    </TouchableOpacity>
-                  ))
+              {searchResults.length > 0 ? (
+                searchResults.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionItem}
+                    onPress={() => {
+                      if (item.type === "artist") {
+                        navigation.navigate("ArtistDetail", {
+                          artistId: item._id,
+                        });
+                      } else if (item.type === "song") {
+                        setCurrentTrack(item);
+                        if (item.artistId && item.artistId._id) {
+                          axios
+                            .get(`${constants.url}/song/getByArtist/?id=${item.artistId._id}`)
+                            .then((response) => {
+                              setPlaylist(response.data.content);
+                              navigation.navigate("Home");
+                            })
+                            .catch((error) => console.error("Error fetching songs:", error));
+                        } else {
+                          console.error("Artist ID not found in item:", item);
+                        }
+                        
+                      }
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <Image
+                        style={[
+                          { width: 60, height: 60 },
+                          item.type === "artist"
+                            ? { borderRadius: 30 }
+                            : { borderRadius: 10 },
+                        ]}
+                        source={{ uri: item.image }}
+                      />
+                      <View>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 15,
+                            width: 220,
+                            color: "#ffffff",
+                            fontWeight: "bold",
+                            marginRight: 5,
+                          }}
+                        >
+                          {item.name}
+                          {item.type === "artist" && (
+                            <View
+                              style={{
+                                backgroundColor: "#4F83C1",
+                                borderRadius: 10,
+                                padding: 2,
+                                marginLeft: 5,
+                                display: "inline-flex",
+                              }}
+                            >
+                              <AntDesign
+                                name="checkcircleo"
+                                size={12}
+                                color="white"
+                              />
+                            </View>
+                          )}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 14, // Tăng kích thước chữ cho phụ đề
+                            width: 250, // Tăng độ rộng
+                            color: "#ffffff",
+                          }}
+                        >
+                          {item.type}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))
               ) : (
                 <View style={styles.noSuggestionsContainer}>
                   <Text style={styles.noSuggestionsTitle}>
@@ -236,7 +365,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#282828",
     color: "#fff",
     marginHorizontal: 10,
-    fontSize:18
+    fontSize: 18,
   },
   suggestionItem: {
     padding: 15,
@@ -246,22 +375,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   noSuggestionsContainer: {
-    justifyContent: "center", 
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20, 
-    flex: 1, 
-    marginTop:350
+    paddingHorizontal: 20,
+    flex: 1,
+    marginTop: 350,
   },
 
   noSuggestionsTitle: {
     color: "#fff",
-    fontSize: 22, 
+    fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
   },
   noSuggestionsSubtitle: {
     color: "gray",
-    fontSize: 13, 
+    fontSize: 13,
     textAlign: "center",
   },
 });

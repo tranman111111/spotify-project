@@ -1,3 +1,4 @@
+import React, { useContext, useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -6,41 +7,58 @@ import {
   Text,
   TextInput,
   View,
+  ActivityIndicator
 } from "react-native";
-import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { constants } from "../helper/constants";
+import { Player } from "../PlayerContext";
 
 const LikedSongScreen = () => {
   const navigation = useNavigation();
-  const songData = [
-    {
-      song: "Ngủ một mình (tình rất tình)",
-      artist: "HIEUTHUHAI, Negav, Kewtiie",
-      image: require("../assets/ngu-mot-minh.jpg"),
-    },
-    {
-      song: "Dễ đến dễ đi",
-      artist: "Quang Hùng MasterD",
-      image: require("../assets/de-den-de-di.jpg"),
-    },
-    {
-      song: "BADBYE",
-      artist: "WEAN",
-      image: require("../assets/badbye.jpg"),
-    },
-    {
-      song: "Mặt trời của em",
-      artist: "Phương Ly",
-      image: require("../assets/mat-troi-cua-em.jpg"),
-    },
-    {
-      song: "Nơi này có anh",
-      artist: "Sơn Tùng M-TP",
-      image: require("../assets/noi-nay-co-anh.webp"),
-    },
-  ];
+  const [likedSongs, setLikedSongs] = useState([]); // State để lưu bài hát đã thích
+  const [loading, setLoading] = useState(true); // State để theo dõi trạng thái loading
+
+  const { currentTrack, setCurrentTrack, playlist, setPlaylist } = useContext(Player);
+
+  useEffect(() => {
+    // Hàm gọi API lấy danh sách bài hát đã thích
+    const fetchLikedSongs = async () => {
+      try {
+        // Gọi API (thay <userId> bằng ID của người dùng hoặc lấy từ context)
+        const userId = await AsyncStorage.getItem("userId");
+
+        const response = await axios.get(
+          `${constants.url}/song/likedSongs?userId=${userId}`
+        );
+        setLikedSongs(response.data.content); // Cập nhật danh sách bài hát đã thích
+        setLoading(false); // Tắt loading sau khi lấy dữ liệu
+      } catch (error) {
+        console.error("Error fetching liked songs:", error);
+        setLoading(false); // Tắt loading nếu có lỗi
+      }
+    };
+
+    fetchLikedSongs();
+  }, []);
+
+  if (loading) {
+    // Hiển thị khi dữ liệu đang được tải
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#1DB954" />
+      </View>
+    );
+  }
+
+  const handlePlaySong = (selectedSong) => {
+    setCurrentTrack(selectedSong); 
+    setPlaylist(likedSongs); 
+  };
+
   return (
     <>
       <LinearGradient
@@ -126,7 +144,7 @@ const LikedSongScreen = () => {
               gap: 7,
             }}
           >
-            <Text style={{ color: "white" }}>5 songs</Text>
+            <Text style={{ color: "white" }}>{likedSongs.length} songs</Text>
           </View>
           <Pressable
             style={{
@@ -172,6 +190,7 @@ const LikedSongScreen = () => {
                   alignItems: "center",
                   backgroundColor: "#1DB954",
                 }}
+                onPress={() => handlePlaySong(likedSongs[0])}
               >
                 <Entypo name="controller-play" size={24} color="black" />
               </Pressable>
@@ -180,7 +199,7 @@ const LikedSongScreen = () => {
 
           <View>
             <View style={{ marginTop: 10, marginHorizontal: 12 }}>
-              {songData.map((item, index) => (
+              {likedSongs.map((item, index) => (
                 <Pressable
                   key={index}
                   style={{
@@ -189,10 +208,12 @@ const LikedSongScreen = () => {
                     justifyContent: "space-between",
                     alignItems: "center",
                   }}
+                onPress={() => handlePlaySong(item)}
+
                 >
                   {/* Ảnh bài hát */}
                   <Image
-                    source={item.image}
+                    source={{uri: item.image}}
                     style={{ width: 50, height: 50, borderRadius: 5 }}
                   />
 
@@ -205,7 +226,7 @@ const LikedSongScreen = () => {
                         color: "white",
                       }}
                     >
-                      {item.song}
+                      {item.name}
                     </Text>
                     <Text
                       style={{
@@ -215,7 +236,7 @@ const LikedSongScreen = () => {
                         marginTop: 5,
                       }}
                     >
-                      {item.artist}
+                      {item.artistId.name}
                     </Text>
                   </View>
 
@@ -225,7 +246,10 @@ const LikedSongScreen = () => {
               ))}
             </View>
           </View>
+
+          <View style={{ height: 150 }}/>
         </ScrollView>
+
       </LinearGradient>
     </>
   );
